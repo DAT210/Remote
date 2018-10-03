@@ -1,0 +1,31 @@
+//http://www.sqlitetutorial.net/sqlite-nodejs/connect/
+
+CREATE TABLE User (
+ Userid integer PRIMARY KEY,
+ first_name text NOT NULL,
+ last_name text NOT NULL,
+ email text NOT NULL UNIQUE,
+ phone text NOT NULL UNIQUE,
+ coupon integer,
+ FOREIGN KEY (coupon) REFERENCES coupons (coupon)
+);
+
+CREATE TABLE coupons (
+ couponID integer PRIMARY KEY,
+ expiration_date date,
+ FOREIGN KEY (date) REFERENCES datetime (date)
+ 
+);
+
+CREATE TABLE datetime (d1 text, d2 text);
+
+DATETIME('now','localtime');
+
+INSERT INTO datetime (d1, d2)
+VALUES
+ (
+ datetime('now'),
+ datetime('now', 'localtime')
+ );
+
+
