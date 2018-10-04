@@ -1,7 +1,7 @@
 //http://www.sqlitetutorial.net/sqlite-nodejs/connect/
 
 CREATE TABLE User (
- Userid integer PRIMARY KEY,
+ UserId integer PRIMARY KEY,
  first_name text NOT NULL,
  last_name text NOT NULL,
  email text NOT NULL UNIQUE,
@@ -12,6 +12,7 @@ CREATE TABLE User (
 
 CREATE TABLE coupons (
  couponID integer PRIMARY KEY,
+ valid integer,
  expiration_date date,
  FOREIGN KEY (date) REFERENCES datetime (date)
  

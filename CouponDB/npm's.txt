@@ -1,0 +1,4 @@
+npm install express --save
+npm install sqlite3
+npm install mocha
+npm test (mangler package.json?)
