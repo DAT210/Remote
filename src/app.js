@@ -36,7 +36,7 @@ if(!DbTest.endsWith(".db")){
 
 const nunjucks = require('nunjucks');
 const express = require('express');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 
 const sqlite3 = require('sqlite3').verbose();
 
@@ -45,7 +45,7 @@ let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATAB
 
 db.run('CREATE TABLE IF NOT EXISTS TokensDB(User_Id INTEFER PRIMARY KEY, Tokens INTEGER)',function(err){
 	if(err){
-		console.log(err.message)
+		console.log(err.message);
 	}
 });
 db.run('CREATE TABLE IF NOT EXISTS MealDeals(Deal_Id INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, Start_Date TEXT, End_Date TEXT)', function(err) {
@@ -89,15 +89,32 @@ app.get('/', function (req, res) {
 	Create db entry for orderid.
 */
 app.use(bodyParser.json());
+/*
+	Create MealDeal
 
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 400 means that something went wrong 
+	Code 404 means that something is missing
+	
+	{
+		deal_Id: "",
+		price: "",
+		name: "",
+		start_Date: "",
+		end_Date: "",
+		"products": []
+		
+	}
+*/
 descriptionTestVar = false;
 app.post('/reward/post_deal', function(req, res) {
 	json = req.body;
-	mealdealid = parseInt(json.deal_Id, 10)
-	price = parseInt(json.price)
-	name = json.name
-	start_date = json.start_Date
-	end_date = json.end_Date
+	mealdealid = parseInt(json.deal_Id, 10);
+	price = parseInt(json.price);
+	name = json.name;
+	start_date = json.start_Date;
+	end_date = json.end_Date;
 	if (!(json.products == undefined)){
 		//product existens test
 		descriptionTestVar = false;
@@ -116,20 +133,21 @@ app.post('/reward/post_deal', function(req, res) {
 					}
 					else{
 						if(row == undefined){
-						let resp = JSON.parse('{}');
-						resp.message = "Could not create meal";
-						resp.description = resp.description + product;
-						descriptionTestVar = true;
-					}
-					counter++;
-					if(counter == json.products.length){
-						if (descriptionTestVar){
-							resp.description = "product: " + resp.description + " does not exist" 
-							res.status(400).json(resp)
-						}else{
-							dbMealDeal(req,res);
+							let resp = JSON.parse('{}');
+							resp.message = "Could not create meal";
+							resp.description = resp.description + product;
+							descriptionTestVar = true;
 						}
-					}
+						counter++;
+						// test if one of the rows was empty
+						if(counter == json.products.length){
+							if (descriptionTestVar){
+								resp.description = "product: " + resp.description + " does not exist" 
+								res.status(400).json(resp)
+							}else{
+								dbMealDeal(req,res);
+							}
+						}
 					}
 
 				});	
@@ -138,26 +156,25 @@ app.post('/reward/post_deal', function(req, res) {
 		
 		}
 	}else{
-		console.log("darn");
 	}
 });
 function dbMealDeal(req,res){
-	json = req.body
-	test = false
+	json = req.body;
+	test = false;
 	db.run(`INSERT INTO MealDeals(Deal_Id, Price, Name, Start_Date, End_Date) VALUES (${mealdealid}, ${price}, "${name}", "${start_date}", "${end_date}")`, function(err) {
 		if (err) {
 			let resp = JSON.parse('{}');
 			console.log(err.message);			
 			resp.message = "Could not create the MealDeal";
 			resp.description = err.message +  " insert into";
-			test = true
+			test = true;
 			res.status(400).json(resp);
 		} else {
 			if(!test){
 				try{
 					json.products.forEach(function(product){
 						counter = 0;
-						testproduct = parseInt(product,10)
+						testproduct = parseInt(product,10);
 						db.run(`INSERT INTO MealDeals_Connection(Deal_Id, Product_Id) VALUES (${mealdealid}, ${testproduct})`, function(err) {
 							if (err) {
 								resp = JSON.parse('{}');
@@ -183,8 +200,19 @@ function dbMealDeal(req,res){
 		}
 	});
 }
+/*
+	Makes a product
 
-// make a product in Products
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 400 means that somethig went wrong
+	
+	{
+		"ProductId": "10
+	}
+*/
+
+
 app.post('/reward/prod/post_product', function(req, res) {
 		
 	// Retrieve order information from Orders service,
@@ -206,10 +234,18 @@ app.post('/reward/prod/post_product', function(req, res) {
 		}
 	});
 });
+/*
+	Get status about a reward
 
-app.get('/reward/get_deal:id', function(req, res){ 
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 400 means that somethig went wrong 
+*/
+
+
+app.get('/reward/get_deal/:id', function(req, res){ 
 	
-	let mealdealid = parseInt(req.params.id, 10)
+	let mealdealid = parseInt(req.params.id, 10);
 	db.all(
 	`SELECT MealDeals.Deal_Id, MealDeals.Price, MealDeals.Name, MealDeals.Start_Date,MealDeals.End_Date,Products.Product_Id FROM MealDeals
 	JOIN MealDeals_Connection ON MealDeals.Deal_Id = MealDeals_Connection.Deal_Id 
@@ -224,17 +260,23 @@ app.get('/reward/get_deal:id', function(req, res){
 			
 		} else {
 			if (rows.length >0){
-				all_ProductId = []
+				all_ProductId = [];
 				rows.forEach(function(row){
-					all_ProductId.push(row.Product_Id)
+					all_ProductId.push(row.Product_Id);
 				});
-				rows[0].Product_Id = all_ProductId
-				res.status(200).json(rows[0])
-			}else res.status(201).end()
+				rows[0].Product_Id = all_ProductId;
+				res.status(200).json(rows[0]);
+			}else res.status(404).end();
 		}
 	});
 });
+/*
+	Gets the connections between MealDeals and Products
 
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 400 means that somethig went wrong 
+*/
 app.get('/reward/MealDealsConn', function(req, res){
 	db.all(`SELECT * FROM MealDeals_Connection`, function(err,row){
 		if(err){
@@ -243,11 +285,18 @@ app.get('/reward/MealDealsConn', function(req, res){
 			resp.description = err.message;
 			res.status(400).json(resp);
 		}else{
-			res.status(200).json(row)
+			res.status(200).json(row);
 		}
 	});
 });
-// sends all products listed in the db Products
+/*
+	Gets the product
+
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 404 means that the product does not exist
+*/
+
 app.get('/reward/prod/:id', function(req, res){
 	productid = parseInt(req.params.id, 10);
 	
@@ -255,7 +304,7 @@ app.get('/reward/prod/:id', function(req, res){
 		if (err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get the product";
-			resp.description = err.messagepo
+			resp.description = err.messagepo;
 			res.status(400).json(resp);
 		} else{
 			if (row == undefined){
@@ -263,13 +312,21 @@ app.get('/reward/prod/:id', function(req, res){
 				resp.message = "Product does not exsist";
 				res.status(404).json(resp);
 			}
-			res.status(200).json(row)
+			res.status(200).json(row);
 		}
 	});
 });
+/*
+	Gets Game tokens
+
+	Response format, JSON
+	Valid response with data has status code 200.
+	Code 400 means that somethig went wrong 
+*/
+
 
 app.get('/reward/game_get_tokens/:id', function(req, res){
-	ID = parseInt(req.params.id,10)
+	ID = parseInt(req.params.id,10);
 	db.get(`SELECT Tokens from TokensDB WHERE User_Id = ${ID}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
@@ -298,11 +355,11 @@ app.get('/reward/game_get_tokens/:id', function(req, res){
 });
 
 /*
-	Get status about a reward
+	Update Game tokens 
 
 	Response format, JSON
 	Valid response with data has status code 200.
-	Code 404 means the reward doesn't exist
+	Code 400 means that somethig went wrong 
 	{
 		"User_Id Int"
 		"Tokens "
@@ -322,7 +379,6 @@ app.put('/reward/game_update', function(req, res){
 			res.status(400).json(resp);
 		}else{	
 			TokensInput = row.Tokens - tokens;
-			console.log(TokensInput)
 			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE User_Id = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
