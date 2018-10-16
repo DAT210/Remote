@@ -92,7 +92,7 @@ app.use(bodyParser.json());
 
 descriptionTestVar = false;
 app.post('/reward/post_deal', function(req, res) {
-	json = req.body
+	json = req.body;
 	mealdealid = parseInt(json.deal_Id, 10)
 	price = parseInt(json.price)
 	name = json.name
@@ -141,7 +141,8 @@ app.post('/reward/post_deal', function(req, res) {
 		console.log("darn");
 	}
 });
-function dbMealDeal(req,res){	
+function dbMealDeal(req,res){
+	json = req.body
 	test = false
 	db.run(`INSERT INTO MealDeals(Deal_Id, Price, Name, Start_Date, End_Date) VALUES (${mealdealid}, ${price}, "${name}", "${start_date}", "${end_date}")`, function(err) {
 		if (err) {
@@ -167,7 +168,7 @@ function dbMealDeal(req,res){
 								throw BreakException;
 							}
 							counter++;
-							if (counter == req.body.products.length){
+							if (counter == json.products.length){
 								if(test){
 								}else{
 									res.status(201).end();
@@ -188,7 +189,8 @@ app.post('/reward/prod/post_product', function(req, res) {
 		
 	// Retrieve order information from Orders service,
 	// or get in from the request.
-	productid = parseInt(req.body.ProductId, 10);
+	json = req.body;
+	productid = parseInt(json.ProductId, 10);
 	console.log("Inserting new Product " + productid);	
 	
 	db.run(`INSERT INTO Products(Product_Id) VALUES (${productid})`, function(err) {
@@ -205,8 +207,9 @@ app.post('/reward/prod/post_product', function(req, res) {
 	});
 });
 
-app.get('/reward/get_deal', function(req, res){ 
-	let mealdealid = parseInt(req.body.mealDealId, 10)
+app.get('/reward/get_deal:id', function(req, res){ 
+	
+	let mealdealid = parseInt(req.params.id, 10)
 	db.all(
 	`SELECT MealDeals.Deal_Id, MealDeals.Price, MealDeals.Name, MealDeals.Start_Date,MealDeals.End_Date,Products.Product_Id FROM MealDeals
 	JOIN MealDeals_Connection ON MealDeals.Deal_Id = MealDeals_Connection.Deal_Id 
@@ -245,8 +248,8 @@ app.get('/reward/MealDealsConn', function(req, res){
 	});
 });
 // sends all products listed in the db Products
-app.post('/reward/prod/get_product', function(req, res){
-	productid = parseInt(req.body.productid, 10);
+app.get('/reward/prod/:id', function(req, res){
+	productid = parseInt(req.params.id, 10);
 	
 	db.get(`SELECT * FROM Products WHERE Product_Id = ${productid}`, function(err, row){
 		if (err){
@@ -265,28 +268,28 @@ app.post('/reward/prod/get_product', function(req, res){
 	});
 });
 
-app.post('/reward/game_get_tokens', function(req, res){
-	json = req.body
-	db.get(`SELECT Tokens from TokensDB WHERE User_Id = ${json.User_Id}`, function(err, row){
+app.get('/reward/game_get_tokens/:id', function(req, res){
+	ID = parseInt(req.params.id,10)
+	db.get(`SELECT Tokens from TokensDB WHERE User_Id = ${ID}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get User";
-			res.status(404).json(resp);
+			res.status(400).json(resp);
 		}
 		else{
 			if (!(row == undefined)){
-				res.status(200).json(row)
+				res.status(200).json(JSON.stringify(row));
 			}else{
-				db.run(`INSERT INTO TokensDB(User_Id, Tokens) VALUES (${json.User_Id}, 0)`, function(err){
+				db.run(`INSERT INTO TokensDB(User_Id, Tokens) VALUES (${ID}, 0)`, function(err){
 					if(err){
 						let resp = JSON.parse('{}');
 						resp.message = "Could not create User";
 						res.status(400).json(resp);
 					}else{
-						res.status(200).json({
+						res.status(200).json(JSON.stringify({
 							"User_Id": json.User_Id,
 							"Tokens": '0'
-						});
+						}));
 					}
 				});
 			}
@@ -307,17 +310,20 @@ app.post('/reward/game_get_tokens', function(req, res){
 */
 
 app.put('/reward/game_update', function(req, res){
-	
-	db.get(`SELECT Tokens FROM TokensDB WHERE USER_Id = $(req.body.User_Id)`, function(err){
+	json = req.body;
+	let userid = parseInt(json.User_Id, 10);
+	let tokens = parseInt(json.Tokens, 10);
+	db.get(`SELECT Tokens FROM TokensDB WHERE USER_Id = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get information from database";
 			resp.description = err.message;
 			res.status(400).json(resp);
-		}else{
-					
-			db.run(`ÙPDATE TokensDB SET Tokens = ${req.body.Tokens}, WHERE User_Id = ${User_Id}`,function(err){
+		}else{	
+			TokensInput = row.Tokens - tokens;
+			console.log(TokensInput)
+			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE User_Id = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
 					let resp = JSON.parse('{}');
@@ -325,7 +331,7 @@ app.put('/reward/game_update', function(req, res){
 					resp.description = err.message;
 					res.status(400).json(resp);
 				}else{
-					res.status(201).end();
+					res.status(200).end();
 				}
 			});
 		}
