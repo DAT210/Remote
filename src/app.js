@@ -40,13 +40,13 @@ const bodyParser = require('body-parser')
 
 const sqlite3 = require('sqlite3').verbose();
 
-let db = new sqlite3.Database(':memory:');//path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
+let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
 
 
 db.run('CREATE TABLE IF NOT EXISTS TokensDB(User_Id INTEFER PRIMARY KEY, Tokens INTEGER)',function(err){
-	if(
-		console.log(err.message);
-	)
+	if(err){
+		console.log(err.message)
+	}
 });
 db.run('CREATE TABLE IF NOT EXISTS MealDeals(Deal_Id INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, Start_Date TEXT, End_Date TEXT)', function(err) {
 	if (err) {
@@ -91,82 +91,104 @@ app.get('/', function (req, res) {
 app.use(bodyParser.json());
 
 descriptionTestVar = false;
-app.post('/reward/:mealDealId', function(req, res) {
+app.post('/reward/post_deal', function(req, res) {
 	json = req.body
-	mealdealid = parseInt(json.deal_Id)
+	mealdealid = parseInt(json.deal_Id, 10)
 	price = parseInt(json.price)
 	name = json.name
 	start_date = json.start_Date
 	end_date = json.end_Date
-	
-	//product existens test
-	descriptionTestVar = false;
-	let resp = JSON.parse('{}');
-	json.products.forEach(function(product){
-		counter = 0
-		db.get(`SELECT * from Products WHERE Product_Id = ${product}`, function(err,row){
-			if(err){
-					
-			}
-			else{
-			
-			}
-			if(row == undefined){
-				resp.message = "Could not create meal";
-				resp.description = resp.description + product;
-				descriptionTestVar = true;
-			}
-			counter++;
-			if(counter == json.products.length){
-				if (descriptionTestVar){
-					resp.description = "product: " + resp.description + " does not exist" 
-					res.status(400).json(resp)
-				}else{
-					dbMealDeal(req,res);
-				}
-			}
-		});	
-	});
+	if (!(json.products == undefined)){
+		//product existens test
+		descriptionTestVar = false;
+		let resp = JSON.parse('{}');
+		try {
+			json.products.forEach(function(product){
+				counter = 0;
+				db.get(`SELECT * from Products WHERE Product_Id = ${product}`, function(err,row){
+					if(err){
+						let resp = JSON.parse('{}');
+						console.log(err.message);			
+						resp.message = "Product ${product} does not exist";
+						resp.description = err.message +  " insert into";
+						res.status(404).json(resp);
+						throw BreakException;
+					}
+					else{
+						if(row == undefined){
+						let resp = JSON.parse('{}');
+						resp.message = "Could not create meal";
+						resp.description = resp.description + product;
+						descriptionTestVar = true;
+					}
+					counter++;
+					if(counter == json.products.length){
+						if (descriptionTestVar){
+							resp.description = "product: " + resp.description + " does not exist" 
+							res.status(400).json(resp)
+						}else{
+							dbMealDeal(req,res);
+						}
+					}
+					}
+
+				});	
+			});
+		}catch(e){
+		
+		}
+	}else{
+		console.log("darn");
+	}
 });
 function dbMealDeal(req,res){	
 	test = false
 	db.run(`INSERT INTO MealDeals(Deal_Id, Price, Name, Start_Date, End_Date) VALUES (${mealdealid}, ${price}, "${name}", "${start_date}", "${end_date}")`, function(err) {
 		if (err) {
+			let resp = JSON.parse('{}');
 			console.log(err.message);			
-			resp.message = "Could not create the payment";
-			resp.description = err.message +  " insert into MealDeals_Connection";
-		} else {
+			resp.message = "Could not create the MealDeal";
+			resp.description = err.message +  " insert into";
 			test = true
+			res.status(400).json(resp);
+		} else {
+			if(!test){
+				try{
+					json.products.forEach(function(product){
+						counter = 0;
+						testproduct = parseInt(product,10)
+						db.run(`INSERT INTO MealDeals_Connection(Deal_Id, Product_Id) VALUES (${mealdealid}, ${testproduct})`, function(err) {
+							if (err) {
+								resp = JSON.parse('{}');
+								console.log(err.message);
+								resp.message = "Could not create the MealDeals_Connection";
+								resp.description = err.message + " insert into MealDeals_Connection";
+								res.status(400).json(resp);
+								throw BreakException;
+							}
+							counter++;
+							if (counter == req.body.products.length){
+								if(test){
+								}else{
+									res.status(201).end();
+								}
+							}
+						});
+					});
+				}catch(e){
+						
+				}
+			}
 		}
 	});
-	console.log(req.body)
-	json.products.forEach(function(product){
-		
-		testproduct = parseInt(product,10)
-		db.run(`INSERT INTO MealDeals_Connection(Deal_Id, Product_Id) VALUES (${mealdealid}, ${testproduct})`, function(err) {
-			if (err) {
-				console.log(err.message);
-				resp.message = "Could not create the payment";
-				resp.description = err.message + " insert into MealDeals_Connection";
-				test = true
-			} else {
-			}
-		});
-	});
-	if (test){
-		res.status(400).json(resp);
-	
-	}else{
-		res.status(201).end();
-	}
 }
 
 // make a product in Products
-app.post('/reward/prod/:productId', function(req, res) {
+app.post('/reward/prod/post_product', function(req, res) {
 		
 	// Retrieve order information from Orders service,
 	// or get in from the request.
-	let productid = parseInt(req.params.productId, 10);
+	productid = parseInt(req.body.ProductId, 10);
 	console.log("Inserting new Product " + productid);	
 	
 	db.run(`INSERT INTO Products(Product_Id) VALUES (${productid})`, function(err) {
@@ -183,13 +205,8 @@ app.post('/reward/prod/:productId', function(req, res) {
 	});
 });
 
-app.get('/reward/:mealDealId', function(req, res){
-	
-	let mealdealid = parseInt(req.params.mealDealId, 10)
-	console.log(`SELECT MealDeals.Deal_Id, MealDeals.Price, MealDeals.Name, MealDeals.Start_Date,MealDeals.End_Date,Products.Product_Id FROM MealDeals
-	JOIN MealDeals_Connection ON MealDeals.Deal_Id = MealDeals_Connection.Deal_Id 
-	JOIN Products ON MealDeals_Connection.Product_Id = Products.Product_Id 
-	WHERE MealDeals.Deal_Id = ${mealdealid}`)
+app.get('/reward/get_deal', function(req, res){ 
+	let mealdealid = parseInt(req.body.mealDealId, 10)
 	db.all(
 	`SELECT MealDeals.Deal_Id, MealDeals.Price, MealDeals.Name, MealDeals.Start_Date,MealDeals.End_Date,Products.Product_Id FROM MealDeals
 	JOIN MealDeals_Connection ON MealDeals.Deal_Id = MealDeals_Connection.Deal_Id 
@@ -216,43 +233,55 @@ app.get('/reward/:mealDealId', function(req, res){
 });
 
 app.get('/reward/MealDealsConn', function(req, res){
-	db.get(`SELECT * FROM MealDeals_Connection`, function(err,row){
+	db.all(`SELECT * FROM MealDeals_Connection`, function(err,row){
 		if(err){
-			
+			let resp = JSON.parse('{}');
+			resp.message = "Could not get MealDealsConnention";
+			resp.description = err.message;
+			res.status(400).json(resp);
 		}else{
 			res.status(200).json(row)
 		}
 	});
 });
 // sends all products listed in the db Products
-app.get('/reward/prod/:productId', function(req, res){
+app.post('/reward/prod/get_product', function(req, res){
+	productid = parseInt(req.body.productid, 10);
 	
-	let productid = parseInt(req.params.productId, 10);
-	
-	db.get(`SELECT * from Products`, function(err, row){
+	db.get(`SELECT * FROM Products WHERE Product_Id = ${productid}`, function(err, row){
 		if (err){
-		
+			let resp = JSON.parse('{}');
+			resp.message = "Could not get the product";
+			resp.description = err.messagepo
+			res.status(400).json(resp);
 		} else{
+			if (row == undefined){
+				let resp = JSON.parse('{}');
+				resp.message = "Product does not exsist";
+				res.status(404).json(resp);
+			}
 			res.status(200).json(row)
 		}
 	});
 });
 
-app.get('/reward/game_getTokens', function(req, res){
+app.post('/reward/game_get_tokens', function(req, res){
 	json = req.body
 	db.get(`SELECT Tokens from TokensDB WHERE User_Id = ${json.User_Id}`, function(err, row){
 		if(err){
-		
+			let resp = JSON.parse('{}');
+			resp.message = "Could not get User";
+			res.status(404).json(resp);
 		}
 		else{
-			
-			if (row > 0){
+			if (!(row == undefined)){
 				res.status(200).json(row)
 			}else{
-				db.run(`INSERT INTO TokensDB(User_Id, Tokens) VALUES (${json.User_Id}, 0)`, function(err,row){
+				db.run(`INSERT INTO TokensDB(User_Id, Tokens) VALUES (${json.User_Id}, 0)`, function(err){
 					if(err){
-						
-						//res.status(400).resp
+						let resp = JSON.parse('{}');
+						resp.message = "Could not create User";
+						res.status(400).json(resp);
 					}else{
 						res.status(200).json({
 							"User_Id": json.User_Id,
@@ -266,11 +295,11 @@ app.get('/reward/game_getTokens', function(req, res){
 });
 
 /*
-	Get status about a payment
+	Get status about a reward
 
 	Response format, JSON
 	Valid response with data has status code 200.
-	Code 404 means the payment doesn't exist
+	Code 404 means the reward doesn't exist
 	{
 		"User_Id Int"
 		"Tokens "
@@ -279,15 +308,22 @@ app.get('/reward/game_getTokens', function(req, res){
 
 app.put('/reward/game_update', function(req, res){
 	
-	db.get(`SELECT Tokens FROM TokensDB WHERE USER_Id = $(req.body.User_Id)`, function{
+	db.get(`SELECT Tokens FROM TokensDB WHERE USER_Id = $(req.body.User_Id)`, function(err){
 		if(err){
-		
+			console.log(err.message);			
+			let resp = JSON.parse('{}');
+			resp.message = "Could not get information from database";
+			resp.description = err.message;
+			res.status(400).json(resp);
 		}else{
 					
 			db.run(`ÙPDATE TokensDB SET Tokens = ${req.body.Tokens}, WHERE User_Id = ${User_Id}`,function(err){
 				if (err){
-			
-					//res.status(400).resp;
+					console.log(err.message);			
+					let resp = JSON.parse('{}');
+					resp.message = "Could not update Database";
+					resp.description = err.message;
+					res.status(400).json(resp);
 				}else{
 					res.status(201).end();
 				}
@@ -302,7 +338,7 @@ app.put('/reward/game_update', function(req, res){
 */
 try{
 	if(envVarTests){
-		app.listen(port, () => console.log(`Payment service listening on port ${port}!`));
+		app.listen(port, () => console.log(`Reward service listening on port ${port}!`));
 	}else{
 		console.log("There is something wronge with the env variables. plese check before trying again");
 	}
