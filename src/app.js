@@ -164,7 +164,7 @@ function insertCourses(res,json){
 				resp.message = "Could not create the MealDeals_Connection";
 				resp.description = err.message + " insert into MealDeals_Connection";
 				res.status(400).json(resp);
-				throw BreakException;
+				break;
 			}
 			else{
 				res.status(201).end();
@@ -182,18 +182,19 @@ function insertCourses(res,json){
 */
 
 function getDeal(res,id){
-	db.all(`SELECT * FROM Courses`, function(err,rows){
-		if(err){
-			
-		}else console.log(rows)
-	})
+	let resp = JSON.parse('{}');
 	db.get(`SELECT * FROM MealDeals WHERE DealId = ${id}`, function(err, row){
 		if(err){
-			
+			resp.message = "Could not get MealDeals";
+			resp.description = err.message;
+			res.status(400).json(resp);
 		}else{
 			if(!(row === undefined)){
 				db.all(`SELECT * FROM Courses WHERE DealId = ${row.DealId}`, function(err,rows2){
 					if(err){
+						resp.message = "Could not get Courses";
+						resp.description = err.message;
+						res.status(400).json(resp);
 					}else{
 						if (rows2.length >0){
 							all_CourseId = [];
@@ -202,34 +203,22 @@ function getDeal(res,id){
 						});
 							rows2[0].Course_Id = all_CourseId;
 							res.status(200).json(rows2[0]);
-						}else res.status(404).end();
+						}else{
+							resp.message = "No Course with mealDealid";
+							resp.description = err.message;
+							res.status(404).end();
+						}
 					}
 				});
-			}else res.status(404).end();
+			}else{
+				resp.message = "No MealDeal with this id";
+				resp.description = err.message;
+				res.status(404).end();
+			}
 		}
 	});
 }
 
-/*
-	Gets the connections between MealDeals and Courses
-
-	Response format, JSON
-	Valid response with data has status code 200.
-	Code 400 means that somethig went wrong 
-*/
-
-function mealDealConn(res){
-	db.all(`SELECT * FROM MealDeals_Connection`, function(err,row){
-		if(err){
-			let resp = JSON.parse('{}');
-			resp.message = "Could not get MealDealsConnention";
-			resp.description = err.message;
-			res.status(400).json(resp);
-		}else{
-			res.status(200).json(row);
-		}
-	});
-}
 /*
 	Gets the course
 
