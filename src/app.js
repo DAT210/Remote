@@ -43,24 +43,24 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
 
 
-db.run('CREATE TABLE IF NOT EXISTS TokensDB(User_Id INTEFER PRIMARY KEY, Tokens INTEGER)',function(err){
+db.run('CREATE TABLE IF NOT EXISTS TokensDB(UserId INTEFER PRIMARY KEY, Tokens INTEGER, GameTime TEXT)',function(err){
 	if(err){
 		console.log(err.message);
 	}
 });
-db.run('CREATE TABLE IF NOT EXISTS MealDeals(Deal_Id INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, Start_Date TEXT, End_Date TEXT)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS MealDeals(DealId INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, StartDate TEXT, EndDate TEXT)', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
 });
 
-db.run('CREATE TABLE IF NOT EXISTS Products(Product_Id INTEGER PRIMARY KEY)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS Courses(DealId INTEGER, CourseId INTEGER, NumberOfItems INTEGER, FOREIGN KEY(DealId) REFERENCES MealDeals(DealId), PRIMARY KEY(DealId, courseId))', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
 });
 
-db.run('CREATE TABLE IF NOT EXISTS MealDeals_Connection(Deal_Id INTEGER, Product_Id INTEGER, Row_Id INTEGER PRIMARY KEY)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS MealDeals_Connection(DealId INTEGER, CourseId INTEGER, RowId INTEGER PRIMARY KEY)', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
@@ -98,70 +98,42 @@ app.use(bodyParser.json());
 	Code 404 means that something is missing
 	
 	{
-		deal_Id: "",
+		dealId: "",
 		price: "",
 		name: "",
-		start_Date: "",
-		end_Date: "",
-		"products": []
+		startDate: "",
+		endDate: "",
+		"courses": []
 		
 	}
 */
-descriptionTestVar = false;
-app.post('/reward/post_deal', function(req, res) {
-	json = req.body;
-	mealdealid = parseInt(json.deal_Id, 10);
-	price = parseInt(json.price);
-	name = json.name;
-	start_date = json.start_Date;
-	end_date = json.end_Date;
-	if (!(json.products == undefined)){
-		//product existens test
+function postDeal(req,res){
+	let json = req.body;
+	let resp = JSON.parse('{}');
+	if (!(json.courses == undefined)){
+		//course existens test
 		descriptionTestVar = false;
-		let resp = JSON.parse('{}');
-		try {
-			json.products.forEach(function(product){
-				counter = 0;
-				db.get(`SELECT * from Products WHERE Product_Id = ${product}`, function(err,row){
-					if(err){
-						let resp = JSON.parse('{}');
-						console.log(err.message);			
-						resp.message = "Product ${product} does not exist";
-						resp.description = err.message +  " insert into";
-						res.status(404).json(resp);
-						throw BreakException;
-					}
-					else{
-						if(row == undefined){
-							let resp = JSON.parse('{}');
-							resp.message = "Could not create meal";
-							resp.description = resp.description + product;
-							descriptionTestVar = true;
-						}
-						counter++;
-						// test if one of the rows was empty
-						if(counter == json.products.length){
-							if (descriptionTestVar){
-								resp.description = "product: " + resp.description + " does not exist" 
-								res.status(400).json(resp)
-							}else{
-								dbMealDeal(req,res);
-							}
-						}
-					}
 
-				});	
-			});
-		}catch(e){
+		//test if products exists insert here
+		dbMealDeal(req,res)
 		
-		}
 	}else{
+		resp.description = "course: " + resp.description + " does not exist" 
+		res.status(400).json(resp)
 	}
-});
+}
+
+
 function dbMealDeal(req,res){
-	json = req.body;
-	test = false;
-	db.run(`INSERT INTO MealDeals(Deal_Id, Price, Name, Start_Date, End_Date) VALUES (${mealdealid}, ${price}, "${name}", "${start_date}", "${end_date}")`, function(err) {
+	let json = req.body;
+	let mealdealid = parseInt(json.dealId, 10);
+	let price = parseInt(json.price, 10);
+	let name = json.name;
+	let startdate = json.startDate;
+	let enddate = json.endDate;
+	let test = false;
+	console.log(`INSERT INTO MealDeals(DealId, Price, Name, StartDate, EndDate) VALUES (${mealdealid}, ${price}, "${name}", "${startdate}", "${enddate}")`)
+	db.run(`INSERT INTO MealDeals(DealId, Price, Name, StartDate, EndDate) VALUES (${mealdealid}, ${price}, "${name}", "${startdate}", "${enddate}")`, function(err) {
 		if (err) {
 			let resp = JSON.parse('{}');
 			console.log(err.message);			
@@ -171,69 +143,36 @@ function dbMealDeal(req,res){
 			res.status(400).json(resp);
 		} else {
 			if(!test){
-				try{
-					json.products.forEach(function(product){
-						counter = 0;
-						testproduct = parseInt(product,10);
-						db.run(`INSERT INTO MealDeals_Connection(Deal_Id, Product_Id) VALUES (${mealdealid}, ${testproduct})`, function(err) {
-							if (err) {
-								resp = JSON.parse('{}');
-								console.log(err.message);
-								resp.message = "Could not create the MealDeals_Connection";
-								resp.description = err.message + " insert into MealDeals_Connection";
-								res.status(400).json(resp);
-								throw BreakException;
-							}
-							counter++;
-							if (counter == json.products.length){
-								if(test){
-								}else{
-									res.status(201).end();
-								}
-							}
-						});
-					});
-				}catch(e){
-						
-				}
+				insertCourses(res,json);
 			}
 		}
 	});
 }
 /*
-	Makes a product
-
-	Response format, JSON
-	Valid response with data has status code 200.
-	Code 400 means that somethig went wrong
-	
-	{
-		"ProductId": "10
-	}
+	inserts the connections
 */
+function insertCourses(res,json){
+	let courses = json.courses;
+	let mealdealid = parseInt(json.dealId, 10);
+	for(let counter = 0; counter < courses.length; counter++){
+		courseid = parseInt(courses[counter].courseId);
+		numberofitems = parseInt(courses[counter].numberOfItems);
+		db.run(`INSERT INTO Courses(DealId, CourseId, NumberOfItems) VALUES (${mealdealid}, ${courseid}, ${numberofitems})`, function(err) {
+			if (err) {
+				let resp = JSON.parse('{}');
+				console.log(err.message);
+				resp.message = "Could not create the MealDeals_Connection";
+				resp.description = err.message + " insert into MealDeals_Connection";
+				res.status(400).json(resp);
+				throw BreakException;
+			}
+			else{
+				res.status(201).end();
+			}
+		});
+	}
+}
 
-
-app.post('/reward/prod/post_product', function(req, res) {
-		
-	// Retrieve order information from Orders service,
-	// or get in from the request.
-	json = req.body;
-	productid = parseInt(json.ProductId, 10);
-	console.log("Inserting new Product " + productid);	
-	
-	db.run(`INSERT INTO Products(Product_Id) VALUES (${productid})`, function(err) {
-		if (err) {
-			console.log(err.message);			
-			let resp = JSON.parse('{}');
-			resp.message = "Could not create the Product";
-			resp.description = err.message;
-			res.status(400).json(resp);
-			
-		} else {
-			res.status(201).end();
-		}
-	});
-});
 /*
 	Get status about a reward
 
@@ -242,42 +181,44 @@ app.post('/reward/prod/post_product', function(req, res) {
 	Code 400 means that somethig went wrong 
 */
 
-
-app.get('/reward/get_deal/:id', function(req, res){ 
-	
-	let mealdealid = parseInt(req.params.id, 10);
-	db.all(
-	`SELECT MealDeals.Deal_Id, MealDeals.Price, MealDeals.Name, MealDeals.Start_Date,MealDeals.End_Date,Products.Product_Id FROM MealDeals
-	JOIN MealDeals_Connection ON MealDeals.Deal_Id = MealDeals_Connection.Deal_Id 
-	JOIN Products ON MealDeals_Connection.Product_Id = Products.Product_Id 
-	WHERE MealDeals_Connection.Deal_Id = ${mealdealid}`, function(err,rows){
-		if (err) {
-			console.log(err.message);			
-			let resp = JSON.parse('{}');
-			resp.message = "Could not create the Product";
-			resp.description = err.message;
-			res.status(400).json(resp);
+function getDeal(res,id){
+	db.all(`SELECT * FROM Courses`, function(err,rows){
+		if(err){
 			
-		} else {
-			if (rows.length >0){
-				all_ProductId = [];
-				rows.forEach(function(row){
-					all_ProductId.push(row.Product_Id);
+		}else console.log(rows)
+	})
+	db.get(`SELECT * FROM MealDeals WHERE DealId = ${id}`, function(err, row){
+		if(err){
+			
+		}else{
+			if(!(row === undefined)){
+				db.all(`SELECT * FROM Courses WHERE DealId = ${row.DealId}`, function(err,rows2){
+					if(err){
+					}else{
+						if (rows2.length >0){
+							all_CourseId = [];
+							rows2.forEach(function(row2){
+							all_CourseId.push([row2.CourseId,row2.NumberOfItems]);
+						});
+							rows2[0].Course_Id = all_CourseId;
+							res.status(200).json(rows2[0]);
+						}else res.status(404).end();
+					}
 				});
-				rows[0].Product_Id = all_ProductId;
-				res.status(200).json(rows[0]);
 			}else res.status(404).end();
 		}
 	});
-});
+}
+
 /*
-	Gets the connections between MealDeals and Products
+	Gets the connections between MealDeals and Courses
 
 	Response format, JSON
 	Valid response with data has status code 200.
 	Code 400 means that somethig went wrong 
 */
-app.get('/reward/MealDealsConn', function(req, res){
+
+function mealDealConn(res){
 	db.all(`SELECT * FROM MealDeals_Connection`, function(err,row){
 		if(err){
 			let resp = JSON.parse('{}');
@@ -288,34 +229,69 @@ app.get('/reward/MealDealsConn', function(req, res){
 			res.status(200).json(row);
 		}
 	});
-});
+}
 /*
-	Gets the product
+	Gets the course
 
 	Response format, JSON
 	Valid response with data has status code 200.
-	Code 404 means that the product does not exist
+	Code 404 means that the course does not exist
 */
 
-app.get('/reward/prod/:id', function(req, res){
-	productid = parseInt(req.params.id, 10);
+function getCourse(res,id){
 	
-	db.get(`SELECT * FROM Products WHERE Product_Id = ${productid}`, function(err, row){
+	db.get(`SELECT * FROM Courses WHERE Course_Id = ${id}`, function(err, row){
 		if (err){
 			let resp = JSON.parse('{}');
-			resp.message = "Could not get the product";
+			resp.message = "Could not get the course";
 			resp.description = err.messagepo;
 			res.status(400).json(resp);
 		} else{
 			if (row == undefined){
 				let resp = JSON.parse('{}');
-				resp.message = "Product does not exsist";
+				resp.message = "Course does not exsist";
 				res.status(404).json(resp);
 			}
 			res.status(200).json(row);
 		}
 	});
+}
+
+app.post('/rewards', function(req, res){
+	let page = req.body.page;
+	if (!['courses','mealDeal'].includes(page)){
+		console.log('Not a valid page');
+		res.status(404).end();
+		return
+	}
+	console.log(page)
+	if (page === 'mealDeal'){
+		postDeal(req,res);
+	}else if(page === 'courses'){
+		postCourse(req,res);
+	}
 });
+
+app.get('/reward-pages/:id', function(req, res){
+	let page = req.query.page;
+	if (!['tokens','courses','mealDeal'].includes(page)){
+		console.log('Not a valid page');
+		res.status(404).end();
+		return
+	}
+	
+	let id = parseInt(req.params.id, 10);
+	if (page === 'tokens'){
+		getTokens(res,id);
+	}else if(page === 'courses'){
+		getCourse(res,id);
+	}else if(page === 'mealDeal'){
+		getDeal(res,id);
+	}else if(page === 'mealDealConn'){
+		mealDealConn(res);
+	}
+});
+
 /*
 	Gets Game tokens
 
@@ -324,10 +300,10 @@ app.get('/reward/prod/:id', function(req, res){
 	Code 400 means that somethig went wrong 
 */
 
-
-app.get('/reward/game_get_tokens/:id', function(req, res){
-	ID = parseInt(req.params.id,10);
-	db.get(`SELECT Tokens from TokensDB WHERE User_Id = ${ID}`, function(err, row){
+function getTokens(res, id){
+	//ID = parseInt(req.params.id,10);
+	
+	db.get(`SELECT Tokens from TokensDB WHERE UserId = ${id}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get User";
@@ -337,14 +313,14 @@ app.get('/reward/game_get_tokens/:id', function(req, res){
 			if (!(row == undefined)){
 				res.status(200).json(JSON.stringify(row));
 			}else{
-				db.run(`INSERT INTO TokensDB(User_Id, Tokens) VALUES (${ID}, 0)`, function(err){
+				db.run(`INSERT INTO TokensDB(UserId, Tokens) VALUES (${id}, 0)`, function(err){
 					if(err){
 						let resp = JSON.parse('{}');
 						resp.message = "Could not create User";
 						res.status(400).json(resp);
 					}else{
 						res.status(200).json(JSON.stringify({
-							"User_Id": json.User_Id,
+							"UserId": id,
 							"Tokens": '0'
 						}));
 					}
@@ -352,7 +328,7 @@ app.get('/reward/game_get_tokens/:id', function(req, res){
 			}
 		}	
 	});
-});
+}
 
 /*
 	Update Game tokens 
@@ -361,16 +337,15 @@ app.get('/reward/game_get_tokens/:id', function(req, res){
 	Valid response with data has status code 200.
 	Code 400 means that somethig went wrong 
 	{
-		"User_Id Int"
-		"Tokens "
+		"user_Id Int"
+		"tokens "
 	}
 */
-
-app.put('/reward/game_update', function(req, res){
-	json = req.body;
-	let userid = parseInt(json.User_Id, 10);
+app.patch('/addTokens', function(req,res){
+	let json = req.body;
+	let userid = parseInt(json.UserId, 10);
 	let tokens = parseInt(json.Tokens, 10);
-	db.get(`SELECT Tokens FROM TokensDB WHERE USER_Id = ${userid}`, function(err,row){
+	db.get(`SELECT Tokens FROM TokensDB WHERE UserId = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
 			let resp = JSON.parse('{}');
@@ -378,8 +353,48 @@ app.put('/reward/game_update', function(req, res){
 			resp.description = err.message;
 			res.status(400).json(resp);
 		}else{	
-			TokensInput = row.Tokens - tokens;
-			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE User_Id = ${userid}`,function(err){
+			if(row === undefined){
+				let resp = JSON.parse('{}');
+				resp.message = "User does not exist"
+				res.status(404).json(resp);
+				return;
+			}
+			let TokensInput = row.Tokens + tokens;
+			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserId = ${userid}`,function(err){
+				if (err){
+					console.log(err.message);			
+					let resp = JSON.parse('{}');
+					resp.message = "Could not update Database";
+					resp.description = err.message;
+					res.status(400).json(resp);
+				}else{
+					res.status(200).end();
+				}
+			});
+		}
+	})
+});
+
+app.patch('/subTokens', function(req, res){
+	let json = req.body;
+	let userid = parseInt(json.UserId, 10);
+	let tokens = parseInt(json.Tokens, 10);
+	db.get(`SELECT Tokens FROM TokensDB WHERE UserId = ${userid}`, function(err,row){
+		if(err){
+			console.log(err.message);			
+			let resp = JSON.parse('{}');
+			resp.message = "Could not get information from database";
+			resp.description = err.message;
+			res.status(400).json(resp);
+		}else{	
+			if(row === undefined){
+				let resp = JSON.parse('{}');
+				resp.message = "User does not exist"
+				res.status(404).json(resp);
+				return;
+			}
+			let TokensInput = row.Tokens - tokens;
+			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserId = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
 					let resp = JSON.parse('{}');
