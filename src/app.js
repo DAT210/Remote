@@ -300,7 +300,7 @@ function getTokens(res, id){
 		}
 		else{
 			if (!(row == undefined)){
-				res.status(200).json(JSON.stringify(row));
+				res.status(200).json(row);
 			}else{
 				db.run(`INSERT INTO TokensDB(UserId, Tokens) VALUES (${id}, 0)`, function(err){
 					if(err){
@@ -308,10 +308,10 @@ function getTokens(res, id){
 						resp.message = "Could not create User";
 						res.status(400).json(resp);
 					}else{
-						res.status(200).json(JSON.stringify({
+						res.status(200).json({
 							"UserId": id,
 							"Tokens": '0'
-						}));
+						});
 					}
 				});
 			}
