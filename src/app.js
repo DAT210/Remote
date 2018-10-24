@@ -43,24 +43,24 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
 
 
-db.run('CREATE TABLE IF NOT EXISTS TokensDB(UserId INTEFER PRIMARY KEY, Tokens INTEGER, GameTime TEXT)',function(err){
+db.run('CREATE TABLE IF NOT EXISTS TokensDB(UserID INTEGER PRIMARY KEY, Tokens INTEGER, GameTime TEXT)',function(err){
 	if(err){
 		console.log(err.message);
 	}
 });
-db.run('CREATE TABLE IF NOT EXISTS MealDeals(DealId INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, StartDate TEXT, EndDate TEXT)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS MealDeals(DealID INTEGER PRIMARY KEY, Price INTEGER, Name TEXT, StartDate TEXT, EndDate TEXT)', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
 });
 
-db.run('CREATE TABLE IF NOT EXISTS Courses(DealId INTEGER, CourseId INTEGER, NumberOfItems INTEGER, FOREIGN KEY(DealId) REFERENCES MealDeals(DealId), PRIMARY KEY(DealId, courseId))', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS Courses(DealID INTEGER, CourseID INTEGER, NumberOfItems INTEGER, FOREIGN KEY(DealID) REFERENCES MealDeals(DealID), PRIMARY KEY(DealID, courseID))', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
 });
 
-db.run('CREATE TABLE IF NOT EXISTS MealDeals_Connection(DealId INTEGER, CourseId INTEGER, RowId INTEGER PRIMARY KEY)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS MealDeals_Connection(DealID INTEGER, CourseID INTEGER, RowID INTEGER PRIMARY KEY)', function(err) {
 	if (err) {
 		console.log(err.message);
 	}
@@ -98,7 +98,7 @@ app.use(bodyParser.json());
 	Code 404 means that something is missing
 	
 	{
-		dealId: "",
+		dealID: "",
 		price: "",
 		name: "",
 		startDate: "",
@@ -123,17 +123,58 @@ function postDeal(req,res){
 	}
 }
 
+function isInt(value) {
+  var x;
+  return isNaN(value) ? !1 : (x = parseFloat(value), (0 | x) === x);
+}
+function isString(value){
+	console.log(/\S/.test(value))
+	if(!(/\S/.test(value)))return true;
+	else if(value === undefined)return true;
+	
+	return false;
+}
 
 function dbMealDeal(req,res){
 	let json = req.body;
-	let mealdealid = parseInt(json.dealId, 10);
+	let mealdealid = parseInt(json.dealID, 10);
 	let price = parseInt(json.price, 10);
 	let name = json.name;
 	let startdate = json.startDate;
 	let enddate = json.endDate;
 	let test = false;
-	console.log(`INSERT INTO MealDeals(DealId, Price, Name, StartDate, EndDate) VALUES (${mealdealid}, ${price}, "${name}", "${startdate}", "${enddate}")`)
-	db.run(`INSERT INTO MealDeals(DealId, Price, Name, StartDate, EndDate) VALUES (${mealdealid}, ${price}, "${name}", "${startdate}", "${enddate}")`, function(err) {
+	let inputError = false;
+	if (isInt(mealdealid) == false) {
+		inputError = true;
+	}else if(isInt(price) == false){
+		inputError = true;
+	}else if (isString(name)){
+		inputError = true;
+	}else if (isString(startdate)){
+		inputError = true;
+	}else if (isString(enddate)){
+		inputError = true;
+	}
+		
+	if(json.courses.length > 0 ){
+		for(let counter = 0; counter < json.courses.length; counter++){
+			console.log(isInt(json.courses[counter].numberOfItems))
+			if(isInt(json.courses[counter].numberOfItems) == false) {
+				inputError = true;
+			}
+			console.log(isInt(json.courses[counter].courseID))
+			if(isInt(json.courses[counter].courseID) 	 == false){
+				inputError = true;
+			}
+		}
+	}
+	if (inputError){
+		let resp = JSON.parse('{}')
+		resp.message = "input is wroung";
+		res.status(400).json(resp);
+		return;
+	}
+	db.run(`INSERT INTO MealDeals(DealID, Price, Name, StartDate, EndDate) VALUES (${mealdealid}, ${price}, "${name}", "${startdate}", "${enddate}")`, function(err) {
 		if (err) {
 			let resp = JSON.parse('{}');
 			console.log(err.message);			
@@ -153,25 +194,19 @@ function dbMealDeal(req,res){
 */
 function insertCourses(res,json){
 	let courses = json.courses;
-	let mealdealid = parseInt(json.dealId, 10);
+	let mealdealid = parseInt(json.dealID, 10);
+	var BreakException = {};
 	for(let counter = 0; counter < courses.length; counter++){
-		courseid = parseInt(courses[counter].courseId);
+		courseid = parseInt(courses[counter].courseID);
 		numberofitems = parseInt(courses[counter].numberOfItems);
-		db.run(`INSERT INTO Courses(DealId, CourseId, NumberOfItems) VALUES (${mealdealid}, ${courseid}, ${numberofitems})`, function(err) {
+		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseid}, ${numberofitems})`, function(err) {
 			if (err) {
 				let resp = JSON.parse('{}');
 				console.log(err.message);
 				resp.message = "Could not create the MealDeals_Connection";
 				resp.description = err.message + " insert into MealDeals_Connection";
-				db.run(`DELETE FROM MealDeals WHERE DealId = ${mealdealid}`, function(err2){
-					if (err2){
-						console.log("error deleting");
-					}
-					console.log("deleted");
-				});
-				res.status(400).json(resp);
-			}
-			else{
+				res.status(400).json(resp);	
+			}else{
 				res.status(201).end();
 			}
 		});
@@ -188,41 +223,44 @@ function insertCourses(res,json){
 
 function getDeal(res,id){
 	let resp = JSON.parse('{}');
-	console.log("hei")
-	db.get(`SELECT * FROM MealDeals WHERE DealId = ${id}`, function(err, row){
+	db.get(`SELECT * FROM MealDeals WHERE DealID = ${id}`, function(err, row){
 		if(err){
 			resp.message = "Could not get MealDeals";
 			resp.description = err.message;
 			res.status(400).json(resp);
 		}else{
 			if(!(row === undefined)){
-					console.log("hei2")
-				db.all(`SELECT * FROM Courses WHERE DealId = ${row.DealId}`, function(err,rows2){
-					if(err){
-						console.log("hei3")
-						resp.message = "Could not get Courses noe" + row;
-						resp.description = err.message;
+				console.log(row)
+				db.all(`SELECT * FROM Courses WHERE DealID = ${row.DealID}`, function(err2,rows2){
+					if(err2){
+						resp.message = "Could not get Courses";
+						resp.description = err2.message;
 						res.status(400).json(resp);
 					}else{
-						console.log("hei4")
 						if (rows2.length >0){
-							all_CourseId = [];
-							rows2.forEach(function(row2){
-							all_CourseId.push([row2.CourseId,row2.NumberOfItems]);
-						});
-							rows2[0].Course_Id = all_CourseId;
-							res.status(200).json(rows2[0]);
+							all_CourseID = [];
+							row.Courses = []
+							for(let counter = 0; counter < rows2.length; counter++){
+								row.Courses[counter] = {"courseID": rows2[counter].CourseID, "numberOfItems": rows2[counter].NumberOfItems };
+							}
+							
+							res.status(200).json({
+								"dealID": row.DealID,
+								"price": row.Price,
+								"name": row.Name,
+								"startDate": row.StartDate,
+								"endDate": row.EndDate,
+								"courses": row.Courses
+							});
 						}else{
 							resp.message = "No Course with mealDealid";
-							resp.description = err.message;
-							res.status(404).end();
+							res.status(404).json(resp);
 						}
 					}
 				});
 			}else{
 				resp.message = "No MealDeal with this id";
-				resp.description = err.message;
-				res.status(404).end();
+				res.status(404).json(resp);
 			}
 		}
 	});
@@ -238,7 +276,7 @@ function getDeal(res,id){
 
 function getCourse(res,id){
 	
-	db.get(`SELECT * FROM Courses WHERE Course_Id = ${id}`, function(err, row){
+	db.get(`SELECT * FROM Courses WHERE Course_ID = ${id}`, function(err, row){
 		if (err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get the course";
@@ -301,7 +339,7 @@ app.get('/reward-pages/:id', function(req, res){
 function getTokens(res, id){
 	//ID = parseInt(req.params.id,10);
 	
-	db.get(`SELECT Tokens from TokensDB WHERE UserId = ${id}`, function(err, row){
+	db.get(`SELECT Tokens from TokensDB WHERE UserID = ${id}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get User";
@@ -311,14 +349,14 @@ function getTokens(res, id){
 			if (!(row == undefined)){
 				res.status(200).json(row);
 			}else{
-				db.run(`INSERT INTO TokensDB(UserId, Tokens) VALUES (${id}, 0)`, function(err){
+				db.run(`INSERT INTO TokensDB(UserID, Tokens) VALUES (${id}, 0)`, function(err){
 					if(err){
 						let resp = JSON.parse('{}');
 						resp.message = "Could not create User";
 						res.status(400).json(resp);
 					}else{
 						res.status(200).json({
-							"UserId": id,
+							"UserID": id,
 							"Tokens": '0'
 						});
 					}
@@ -335,15 +373,15 @@ function getTokens(res, id){
 	Valid response with data has status code 200.
 	Code 400 means that somethig went wrong 
 	{
-		"user_Id Int"
+		"user_ID Int"
 		"tokens "
 	}
 */
 app.patch('/addTokens', function(req,res){
 	let json = req.body;
-	let userid = parseInt(json.UserId, 10);
+	let userid = parseInt(json.UserID, 10);
 	let tokens = parseInt(json.Tokens, 10);
-	db.get(`SELECT Tokens FROM TokensDB WHERE UserId = ${userid}`, function(err,row){
+	db.get(`SELECT Tokens FROM TokensDB WHERE UserID = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
 			let resp = JSON.parse('{}');
@@ -358,7 +396,7 @@ app.patch('/addTokens', function(req,res){
 				return;
 			}
 			let TokensInput = row.Tokens + tokens;
-			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserId = ${userid}`,function(err){
+			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserID = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
 					let resp = JSON.parse('{}');
@@ -375,9 +413,9 @@ app.patch('/addTokens', function(req,res){
 
 app.patch('/subTokens', function(req, res){
 	let json = req.body;
-	let userid = parseInt(json.UserId, 10);
+	let userid = parseInt(json.UserID, 10);
 	let tokens = parseInt(json.Tokens, 10);
-	db.get(`SELECT Tokens FROM TokensDB WHERE UserId = ${userid}`, function(err,row){
+	db.get(`SELECT Tokens FROM TokensDB WHERE UserID = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
 			let resp = JSON.parse('{}');
@@ -392,7 +430,7 @@ app.patch('/subTokens', function(req, res){
 				return;
 			}
 			let TokensInput = row.Tokens - tokens;
-			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserId = ${userid}`,function(err){
+			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserID = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
 					let resp = JSON.parse('{}');
