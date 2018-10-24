@@ -163,8 +163,13 @@ function insertCourses(res,json){
 				console.log(err.message);
 				resp.message = "Could not create the MealDeals_Connection";
 				resp.description = err.message + " insert into MealDeals_Connection";
+				db.run(`DELETE FROM MealDeals WHERE DealId = ${mealdealid}`, function(err2){
+					if (err2){
+						console.log("error deleting");
+					}
+					console.log("deleted");
+				});
 				res.status(400).json(resp);
-				break;
 			}
 			else{
 				res.status(201).end();
@@ -183,6 +188,7 @@ function insertCourses(res,json){
 
 function getDeal(res,id){
 	let resp = JSON.parse('{}');
+	console.log("hei")
 	db.get(`SELECT * FROM MealDeals WHERE DealId = ${id}`, function(err, row){
 		if(err){
 			resp.message = "Could not get MealDeals";
@@ -190,12 +196,15 @@ function getDeal(res,id){
 			res.status(400).json(resp);
 		}else{
 			if(!(row === undefined)){
+					console.log("hei2")
 				db.all(`SELECT * FROM Courses WHERE DealId = ${row.DealId}`, function(err,rows2){
 					if(err){
-						resp.message = "Could not get Courses";
+						console.log("hei3")
+						resp.message = "Could not get Courses noe" + row;
 						resp.description = err.message;
 						res.status(400).json(resp);
 					}else{
+						console.log("hei4")
 						if (rows2.length >0){
 							all_CourseId = [];
 							rows2.forEach(function(row2){
@@ -344,7 +353,7 @@ app.patch('/addTokens', function(req,res){
 		}else{	
 			if(row === undefined){
 				let resp = JSON.parse('{}');
-				resp.message = "User does not exist"
+				resp.message = "User does not exist";
 				res.status(404).json(resp);
 				return;
 			}
