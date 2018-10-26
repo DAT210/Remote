@@ -12,7 +12,7 @@ var db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE , (err) => {
   console.log('Connected')
 });
 
-db.run('CREATE TABLE IF NOT EXISTS User(UserID INTEGER PRIMARY KEY, Coupons INTEGER)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER PRIMARY KEY, Coupons INTEGER)', function(err) {
 	if (err) {
     console.log(err.message);
   }
@@ -77,10 +77,10 @@ eller {
 */
 
 function GetUserCoupons(id,res){
-  db.all(`SELECT * FROM User WHERE UserID = ${id}`,function(err,row){
+  db.all(`SELECT * FROM UserCoupons WHERE UserID = ${id}`,function(err,row){
     if(err){console.log(err)}
     else{
-      db.each("SELECT Coupons FROM User WHERE UserID =${id}",function(err,row){
+      db.each("SELECT Coupons FROM UserCoupons WHERE UserID =${id}",function(err,row){
         if(err){console.log(err)}
         else{
           console.log(UserID)
@@ -92,7 +92,7 @@ function GetUserCoupons(id,res){
 }
 
 function GetCoupon (id, CouponID,res){
-db.get(`SELECT * FROM User WHERE UserID = ${id}`, function(err, row){
+db.get(`SELECT * FROM UserCoupons WHERE UserID = ${id}`, function(err, row){
   if (err){
     console.log(err);
   }
@@ -134,7 +134,7 @@ let json = req.body;
   let Value = parseInt(json.Value, 10);
 	let ExpirationDate = datenow;
 
-  db.run('INSERT INTO User(UserID, Coupon) VALUES (${UserID}, ${UserID})')
+  db.run('INSERT INTO UserCoupons(UserID, Coupon) VALUES (${UserID}, ${UserID})')
  // db.run('INSERT INTO UserIDs(UserID)VALUES (${UserID})')
   db.run('INSERT INTO Coupons(CouponID, ExpirationDate, Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value} )')
   // CouponID ->AUTO_INCREMENT?
@@ -177,7 +177,7 @@ app.post('/Coupons/', function(req,res){
   
   var ExpirationDate = makeDate();
 //addCoupon(UserID, Type, Value); 
-  db.get(`SELECT Coupons FROM User WHERE UserID = ${UserID}`, function(err,row){
+  db.get(`SELECT Coupons FROM UserCoupons WHERE UserID = ${UserID}`, function(err,row){
     if(err){console.log(err);}
     else{
       db.run("INSERT INTO Coupons(CouponID, ExpirationDate,Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value}) ", function(err,row)
