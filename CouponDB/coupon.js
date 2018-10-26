@@ -12,7 +12,7 @@ var db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE , (err) => {
   console.log('Connected')
 });
 
-db.run('CREATE TABLE IF NOT EXISTS User(UserID INTEGER PRIMARY KEY, coupon INTEGER)', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS User(UserID INTEGER PRIMARY KEY, Coupons INTEGER)', function(err) {
 	if (err) {
     console.log(err.message);
   }
@@ -25,7 +25,7 @@ db.run('CREATE TABLE IF NOT EXISTS User(UserID INTEGER PRIMARY KEY, coupon INTEG
 var d= Date.now ;
 var datenow = d.toString();
 
- db.run('CREATE TABLE IF NOT EXISTS coupons(couponID INTEGER PRIMARY KEY AUTO_INCREMENT, expiration_date TEXT, type INTEGER, value INTEGER) VALUES (?, datenow , 1, 50  )', function(err){if (err){
+ db.run('CREATE TABLE IF NOT EXISTS Coupon(CouponID INTEGER PRIMARY KEY AUTO_INCREMENT, ExpirationDate TEXT, Type INTEGER, Value INTEGER) ', function(err){if (err){
    console.log(err.message);
  }
 });
@@ -53,53 +53,53 @@ app.get('/', function (req, res) {
 /*
 Json format to reward server:
     {
-        userId: int
-        value: int
-        type: int
+        UserID: int
+        Value: int
+        Type: int
     }
 */
 
 /*
 Json format from reward server: 
 {
-  couponID: int
-  expirationDate: text
-  type: int
-  value: int
+  CouponID: int
+  ExpirationDate: text
+  Type: int
+  Value: int
 
   
 }
 eller {
-  userID: int
-  coupons: []
+  UserID: int
+  Coupons: []
 }
 */
 
 function GetUserCoupons(id,res){
-  db.all(`SELECT * FROM User WHERE userID = ${id}`,function(err,row){
+  db.all(`SELECT * FROM User WHERE UserID = ${id}`,function(err,row){
     if(err){console.log(err)}
     else{
-      db.each("SELECT coupons FROM user WHERE userID =${id}",function(err,row){
+      db.each("SELECT Coupons FROM User WHERE UserID =${id}",function(err,row){
         if(err){console.log(err)}
         else{
-          console.log(userID)
-          console.log(row.coupon);
+          console.log(UserID)
+          console.log(row.Coupon);
         }
       });
     }
   });
 }
 
-function GetCoupon (id, couponID,res){
-db.get(`SELECT * FROM User WHERE userID = ${id}`, function(err, row){
+function GetCoupon (id, CouponID,res){
+db.get(`SELECT * FROM User WHERE UserID = ${id}`, function(err, row){
   if (err){
     console.log(err);
   }
   else{
-    db.each("SELECT couponID,expirationDate,type,value FROM coupons WHERE couponID = ${couponID}", function (err,row){
+    db.each("SELECT CouponID,ExpirationDate,Type,Value FROM Coupons WHERE CouponID = ${CouponID}", function (err,row){
       if(err){console.log(err)}
       else{
-console.log(row.couponID,row.expirationDate,row.type,row.value);
+console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
       }
     });
   }
@@ -123,21 +123,21 @@ function makeDate2 (y,m,d){
   return datenow;
 }
 
-function addCoupon(userID, type, value){
+function addCoupon(UserID, Type, Value){
   
 var datenow = makeDate;
 
 let json = req.body;
-	let userID = parseInt(json.userID, 10);
-  let type = parseInt(json.type, 10);
-  let value = parseInt(json.value, 10);
-	let expirationDate = datenow;
+	let UserID = parseInt(json.UserID, 10);
+  let Type = parseInt(json.Type, 10);
+  let Value = parseInt(json.Value, 10);
+	let ExpirationDate = datenow;
 
-  db.run('INSERT INTO User(UserID, coupon) VALUES (${userID}, ${userID})')
+  db.run('INSERT INTO User(UserID, Coupon) VALUES (${UserID}, ${UserID})')
  // db.run('INSERT INTO UserIDs(UserID)VALUES (${UserID})')
-  db.run('INSERT INTO coupons(couponID, expirationDate, type, value) VALUES (${userID}, ${expirationDate},${type}, ${value} )')
-  // couponID ->AUTO_INCREMENT?
-//insert into coupon(couponID)
+  db.run('INSERT INTO Coupons(CouponID, ExpirationDate, Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value} )')
+  // CouponID ->AUTO_INCREMENT?
+//insert into Coupon(CouponID)
 }
 
 // skrives om?
@@ -154,13 +154,13 @@ function viability (date2check){
   return ans;
 }
 
-function usedCoupon (couponID){
-  db.get(`SELECT * FROM coupons WHERE couponID = ${couponID}`, function(err, row){
+function usedCoupon (CouponID){
+  db.get(`SELECT * FROM Coupons WHERE CouponID = ${CouponID}`, function(err, row){
     if (err){
       console.log(err.message);
     }
     else {
-      // write coupon into usedcoupons and delete from current.
+      // write Coupon into usedcoupons and delete from current.
       // dateOfUse == date.now.toString
 
     }
@@ -170,16 +170,16 @@ function usedCoupon (couponID){
 
 app.post('/addCoupon', function(req,res){
 	let json = req.body;
-  let userID = parseInt(json.userID, 10);
-  let type = parseInt(json.value, 10);
-  let value = parseInt(json.value, 10);
+  let UserID = parseInt(json.UserID, 10);
+  let Type = parseInt(json.Value, 10);
+  let Value = parseInt(json.Value, 10);
   
-  var expirationDate = makeDate();
-//addCoupon(userID, type, value); 
-  db.get(`SELECT coupons FROM User WHERE userID = ${userID}`, function(err,row){
+  var ExpirationDate = makeDate();
+//addCoupon(UserID, Type, Value); 
+  db.get(`SELECT Coupons FROM User WHERE UserID = ${UserID}`, function(err,row){
     if(err){console.log(err);}
     else{
-      db.run("INSERT INTO coupons(couponID, expirationDate,type, value) VALUES (${userID}, ${expirationDate},${type}, ${value}) ", function(err,row)
+      db.run("INSERT INTO Coupons(CouponID, ExpirationDate,Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value}) ", function(err,row)
       {
         if(err){console.log(err);
         }
@@ -188,24 +188,24 @@ app.post('/addCoupon', function(req,res){
   });
 
 
-app.get("/getUserCoupons/:id", function(req,res){
+app.get("/UserCoupons/:id", function(req,res){
   let json = req.body;
-  let userID = parseInt(json.userID, 10);
+  let UserID = parseInt(json.UserID, 10);
 
-  GetUserCoupons(userID,res);
+  GetUserCoupons(UserID,res);
 });
 
-app.get("/getCoupon/:id", function(req,res){
+app.get("/UserCoupons/:uid/Coupon/:cid", function(req,res){
   let json = req.body;
-  let userID = parseInt(json.userID, 10);
-  let couponID = parseInt(json.couponID, 10);
-  var checkdate = db.get("SELECT expirationDate FROM coupons WHERE couponID = ${couponID}")
+  let UserID = parseInt(json.UserID, 10);
+  let CouponID = parseInt(json.CouponID, 10);
+  var checkdate = db.get("SELECT ExpirationDate FROM Coupon WHERE CouponID = ${CouponID}")
   if(viability(checkdate== false)){
-    //fjern coupon
+    //fjern Coupon
   }
   
 
-  GetCoupon(userID,couponID,res);
+  GetCoupon(UserID,CouponID,res);
 });
 
 db.close(err) => 
