@@ -57,7 +57,7 @@ You need NodeJS to develop this service. Built with version 8.12.0.
 
 Setting up Dev
 # Clone repository from github
-git clone https://github.com/DAT210/Payment.git
+git clone https://github.com/DAT210/Rewards.git
 # Navigate to it
 cd Payment/
 # Install dependencies
@@ -102,7 +102,7 @@ to test style run jshint in command window
 
 uses standard jshint style
 
-API Reference
+# API Reference
 The API doesn't require any authentication (yet).
 
 Endpoints:
@@ -141,22 +141,13 @@ Response format
 
 POST /Coupons/
 Used to add Coupons.
-Request body format:
+Request body format:[
 	{
 		"UserID":	int,
 		"Type":		int,
 		"Value":	int,
 		
-		"ordered":
-		[
-			{ 
-				"name":		string,
-				"id":		int,
-				"price":	real,
-				"amount":	int
-			}
-		]
-	}
+	}]
 Database
 This service is built with SQLite, using the sqlite3 package. Database version is based on the version on your system. If you don't have SQLite on your system, version 3.15.0 will be used. You can download SQLite here.
 

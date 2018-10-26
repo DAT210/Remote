@@ -80,32 +80,29 @@ function GetUserCoupons(id,res){
   db.all(`SELECT * FROM UserCoupons WHERE UserID = ${id}`,function(err,row){
     if(err){console.log(err)}
     else{
-      db.each("SELECT Coupons FROM UserCoupons WHERE UserID =${id}",function(err,row){
+      db.each("SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID =${id}",function(err,row){
         if(err){console.log(err)}
         else{
           console.log(UserID)
-          console.log(row.Coupon);
+          console.log(row.Coupons);
+          console.log(row.Amount);
+          console.log(row.Used)
         }
       });
     }
   });
 }
 
-function GetCoupon (id, CouponID,res){
-db.get(`SELECT * FROM UserCoupons WHERE UserID = ${id}`, function(err, row){
-  if (err){
-    console.log(err);
-  }
-  else{
+function GetCoupon (CouponID,res){
     db.each("SELECT CouponID,ExpirationDate,Type,Value FROM Coupons WHERE CouponID = ${CouponID}", function (err,row){
       if(err){console.log(err)}
       else{
 console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
       }
     });
-  }
-});
+  
 }
+
 
 function makeDate (){
   var d = Date.now
@@ -134,8 +131,8 @@ let json = req.body;
   let Value = parseInt(json.Value, 10);
 	let ExpirationDate = datenow;
 
-  db.run('INSERT INTO UserCoupons(UserID, Coupon) VALUES (${UserID}, ${UserID})')
- // db.run('INSERT INTO UserIDs(UserID)VALUES (${UserID})')
+  db.run('INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${?})')
+ 
   db.run('INSERT INTO Coupons(CouponID, ExpirationDate, Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value} )')
   // CouponID ->AUTO_INCREMENT?
 //insert into Coupon(CouponID)
@@ -180,7 +177,7 @@ app.post('/Coupons/', function(req,res){
   db.get(`SELECT Coupons FROM UserCoupons WHERE UserID = ${UserID}`, function(err,row){
     if(err){console.log(err);}
     else{
-      db.run("INSERT INTO Coupons(CouponID, ExpirationDate,Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value}) ", function(err,row)
+      db.run("INSERT INTO Coupon(CouponID, ExpirationDate,Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value}) ", function(err,row)
       {
         if(err){console.log(err);
         }
