@@ -135,7 +135,13 @@ let json = req.body;
 function Viability (date2check){
   var d = Date.now;
   var date = d.toString;
-  var ans = date2check.localeCompare(date);
+  var ans = true;
+  for(var i=0;i<date2check.length;i++){
+    if(date2check[i]<date[i]){
+      ans = false;
+    break;}
+    else{continue;}
+  }
   return ans;
 }
 
@@ -168,14 +174,14 @@ app.post('/addCoupon', function(req,res){
   });
 }
 
-app.get("/getUserCoupons", function(req,res){
+app.get("/getUserCoupons/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
 
   GetUserCoupons;
 }
 
-app.get("/getCoupon", function(req,res){
+app.get("/getCoupon/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
   let couponID = paseInt(json.couponID, 10);
