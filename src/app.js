@@ -43,7 +43,7 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
 
 
-db.run('CREATE TABLE IF NOT EXISTS TokensDB(UserID INTEGER PRIMARY KEY, Tokens INTEGER, GameTime TEXT)',function(err){
+db.run('CREATE TABLE IF NOT EXISTS TokensTable(UserID INTEGER PRIMARY KEY, Tokens INTEGER, NextPlayDate TEXT)',function(err){
 	if(err){
 		console.log(err.message);
 	}
@@ -59,13 +59,6 @@ db.run('CREATE TABLE IF NOT EXISTS Courses(DealID INTEGER, CourseID INTEGER, Num
 		console.log(err.message);
 	}
 });
-
-db.run('CREATE TABLE IF NOT EXISTS MealDeals_Connection(DealID INTEGER, CourseID INTEGER, RowID INTEGER PRIMARY KEY)', function(err) {
-	if (err) {
-		console.log(err.message);
-	}
-});
-
 
 const app = express();
 const port = process.env.PORT;
@@ -274,28 +267,9 @@ function getDeal(res,id){
 	Code 404 means that the course does not exist
 */
 
-function getCourse(res,id){
-	
-	db.get(`SELECT * FROM Courses WHERE Course_ID = ${id}`, function(err, row){
-		if (err){
-			let resp = JSON.parse('{}');
-			resp.message = "Could not get the course";
-			resp.description = err.messagepo;
-			res.status(400).json(resp);
-		} else{
-			if (row == undefined){
-				let resp = JSON.parse('{}');
-				resp.message = "Course does not exsist";
-				res.status(404).json(resp);
-			}
-			res.status(200).json(row);
-		}
-	});
-}
-
 app.post('/rewards', function(req, res){
 	let page = req.body.page;
-	if (!['courses','mealDeal'].includes(page)){
+	if (!['mealDeal'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return
@@ -303,14 +277,12 @@ app.post('/rewards', function(req, res){
 	console.log(page)
 	if (page === 'mealDeal'){
 		postDeal(req,res);
-	}else if(page === 'courses'){
-		postCourse(req,res);
 	}
 });
 
 app.get('/reward-pages/:id', function(req, res){
 	let page = req.query.page;
-	if (!['tokens','courses','mealDeal'].includes(page)){
+	if (!['tokens','courses','mealDeal', 'nextPlayDate'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return
@@ -319,12 +291,12 @@ app.get('/reward-pages/:id', function(req, res){
 	let id = parseInt(req.params.id, 10);
 	if (page === 'tokens'){
 		getTokens(res,id);
-	}else if(page === 'courses'){
-		getCourse(res,id);
 	}else if(page === 'mealDeal'){
 		getDeal(res,id);
 	}else if(page === 'mealDealConn'){
 		mealDealConn(res);
+	}else if(page === 'nextPlayDate'){
+		getNextPlayDate(res,id)
 	}
 });
 
@@ -337,9 +309,8 @@ app.get('/reward-pages/:id', function(req, res){
 */
 
 function getTokens(res, id){
-	//ID = parseInt(req.params.id,10);
 	
-	db.get(`SELECT Tokens from TokensDB WHERE UserID = ${id}`, function(err, row){
+	db.get(`SELECT Tokens, NextPlayDate from TokensTable WHERE UserID = ${id}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
 			resp.message = "Could not get User";
@@ -347,18 +318,21 @@ function getTokens(res, id){
 		}
 		else{
 			if (!(row == undefined)){
-				res.status(200).json(row);
+				res.status(200).json({
+					"tokens": row.Tokens,
+					"nextPlayDate": row.NextPlayDate
+				});
 			}else{
-				db.run(`INSERT INTO TokensDB(UserID, Tokens) VALUES (${id}, 0)`, function(err){
+				db.run(`INSERT INTO TokensTable(UserID, Tokens, NextPlayDate) VALUES (${id}, 0, "")`, function(err){
 					if(err){
 						let resp = JSON.parse('{}');
 						resp.message = "Could not create User";
 						res.status(400).json(resp);
 					}else{
 						res.status(200).json({
-							"UserID": id,
-							"Tokens": '0'
-						});
+							"tokens": '0',
+							"nextPlayDate": ""
+							});
 					}
 				});
 			}
@@ -373,15 +347,18 @@ function getTokens(res, id){
 	Valid response with data has status code 200.
 	Code 400 means that somethig went wrong 
 	{
-		"user_ID Int"
-		"tokens "
+		"userID":  Int
+		"tokens":  Int
 	}
 */
 app.patch('/addTokens', function(req,res){
 	let json = req.body;
-	let userid = parseInt(json.UserID, 10);
-	let tokens = parseInt(json.Tokens, 10);
-	db.get(`SELECT Tokens FROM TokensDB WHERE UserID = ${userid}`, function(err,row){
+	let userid = parseInt(json.userID, 10);
+	let tokens = parseInt(json.tokens, 10);
+	if (!(json.nextPlayDate === undefined)){
+		patchNextPlayDate(req,res);
+	}
+	db.get(`SELECT Tokens FROM TokensTable WHERE UserID = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
 			let resp = JSON.parse('{}');
@@ -396,7 +373,7 @@ app.patch('/addTokens', function(req,res){
 				return;
 			}
 			let TokensInput = row.Tokens + tokens;
-			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserID = ${userid}`,function(err){
+			db.run(`UPDATE TokensTable SET Tokens = ${TokensInput} WHERE UserID = ${userid}`,function(err){
 				if (err){
 					console.log(err.message);			
 					let resp = JSON.parse('{}');
@@ -411,41 +388,40 @@ app.patch('/addTokens', function(req,res){
 	})
 });
 
-app.patch('/subTokens', function(req, res){
-	let json = req.body;
-	let userid = parseInt(json.UserID, 10);
-	let tokens = parseInt(json.Tokens, 10);
-	db.get(`SELECT Tokens FROM TokensDB WHERE UserID = ${userid}`, function(err,row){
-		if(err){
-			console.log(err.message);			
+function getNextPlayDate(res,id){
+	db.get(`SELECT NextPlayDate From TokensTable WHERE UserID = ${id}`, function(err, row){
+		if (err){
+			console.log(err.message);
 			let resp = JSON.parse('{}');
-			resp.message = "Could not get information from database";
+			resp.message = "Could not open database";
 			resp.description = err.message;
 			res.status(400).json(resp);
-		}else{	
-			if(row === undefined){
+		}else{
+			if (row === undefined){
 				let resp = JSON.parse('{}');
-				resp.message = "User does not exist"
+				resp.message = "User does not exist";
 				res.status(404).json(resp);
-				return;
+			}else{
+				res.status(200).json({"gameTime": row.GameTime});
 			}
-			let TokensInput = row.Tokens - tokens;
-			db.run(`UPDATE TokensDB SET Tokens = ${TokensInput} WHERE UserID = ${userid}`,function(err){
-				if (err){
-					console.log(err.message);			
-					let resp = JSON.parse('{}');
-					resp.message = "Could not update Database";
-					resp.description = err.message;
-					res.status(400).json(resp);
-				}else{
-					res.status(200).end();
-				}
-			});
 		}
-	})
-});
+	});
+}
 
-
+function patchNextPlayDate(req,res){
+	userid = parseInt(req.body.userID,10)
+	db.run('UPDATE TokensTable SET NextPlayDate = ${req.body.nextPlayDate} WHERE UserID = ${userid}', function(err){
+			if (err){
+				console.log(err.message);			
+				let resp = JSON.parse('{}');
+				resp.message = "Could not update Database";
+				resp.description = err.message;
+				res.status(400).json(resp);
+			}else{
+				res.status(200).end();
+			}
+		)
+}
 /*
 	test if the server can start 
 */
