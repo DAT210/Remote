@@ -330,7 +330,7 @@ function getTokens(res, id){
 						res.status(400).json(resp);
 					}else{
 						res.status(200).json({
-							"tokens": '0',
+							"tokens": 0,
 							"nextPlayDate": ""
 							});
 					}
@@ -353,11 +353,13 @@ function getTokens(res, id){
 */
 app.patch('/addTokens', function(req,res){
 	let json = req.body;
+	
 	let userid = parseInt(json.userID, 10);
 	let tokens = parseInt(json.tokens, 10);
 	if (!(json.nextPlayDate === undefined)){
 		patchNextPlayDate(req,res);
 	}
+	console.log(userid + " " + tokens)
 	db.get(`SELECT Tokens FROM TokensTable WHERE UserID = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
@@ -409,18 +411,20 @@ function getNextPlayDate(res,id){
 }
 
 function patchNextPlayDate(req,res){
-	userid = parseInt(req.body.userID,10)
-	db.run('UPDATE TokensTable SET NextPlayDate = ${req.body.nextPlayDate} WHERE UserID = ${userid}', function(err){
-			if (err){
-				console.log(err.message);			
-				let resp = JSON.parse('{}');
-				resp.message = "Could not update Database";
-				resp.description = err.message;
-				res.status(400).json(resp);
-			}else{
-				res.status(200).end();
-			}
-		)
+	let userid = parseInt(req.body.userID,10);
+	let nextplaydate = req.body.nextPlayDate;
+	console.log(nextplaydate)
+	db.run(`UPDATE TokensTable SET NextPlayDate = "${nextplaydate}" WHERE UserID = ${userid}`, function(err){
+		if (err){
+			console.log(err.message);			
+			let resp = JSON.parse('{}');
+			resp.message = "Could not update Database";
+			resp.description = err.message;
+			res.status(400).json(resp);
+		}else{
+			res.status(200).end();
+		}
+	});
 }
 /*
 	test if the server can start 
