@@ -85,7 +85,7 @@ function GetUserCoupons(req,res){
           console.log(userID)
           console.log(row.coupon);
         }
-      };)
+      });
     }
   });
 }
@@ -102,11 +102,10 @@ db.get(`SELECT * FROM User WHERE userID = ${id}`, function(err, row){
 console.log(row.couponID,row.expirationDate,row.type,row.value);
       }
     });
-
   }
 }
-
 }
+
 function makeDate (){
   var d = Date.now
   d += 1000*60*60*24*30;
