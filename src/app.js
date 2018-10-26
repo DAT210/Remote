@@ -108,11 +108,11 @@ function postDeal(req,res){
 		descriptionTestVar = false;
 
 		//test if products exists insert here
-		dbMealDeal(req,res)
+		dbMealDeal(req,res);
 		
 	}else{
-		resp.description = "course: " + resp.description + " does not exist" 
-		res.status(400).json(resp)
+		resp.description = "course: " + resp.description + " does not exist";
+		res.status(400).json(resp);
 	}
 }
 
@@ -151,11 +151,9 @@ function dbMealDeal(req,res){
 		
 	if(json.courses.length > 0 ){
 		for(let counter = 0; counter < json.courses.length; counter++){
-			console.log(isInt(json.courses[counter].numberOfItems))
 			if(isInt(json.courses[counter].numberOfItems) == false) {
 				inputError = true;
 			}
-			console.log(isInt(json.courses[counter].courseID))
 			if(isInt(json.courses[counter].courseID) 	 == false){
 				inputError = true;
 			}
@@ -223,7 +221,6 @@ function getDeal(res,id){
 			res.status(400).json(resp);
 		}else{
 			if(!(row === undefined)){
-				console.log(row)
 				db.all(`SELECT * FROM Courses WHERE DealID = ${row.DealID}`, function(err2,rows2){
 					if(err2){
 						resp.message = "Could not get Courses";
@@ -232,7 +229,7 @@ function getDeal(res,id){
 					}else{
 						if (rows2.length >0){
 							all_CourseID = [];
-							row.Courses = []
+							row.Courses = [];
 							for(let counter = 0; counter < rows2.length; counter++){
 								row.Courses[counter] = {"courseID": rows2[counter].CourseID, "numberOfItems": rows2[counter].NumberOfItems };
 							}
@@ -272,7 +269,7 @@ app.post('/rewards', function(req, res){
 	if (!['mealDeal'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
-		return
+		return;
 	}
 	console.log(page)
 	if (page === 'mealDeal'){
@@ -285,7 +282,7 @@ app.get('/reward-pages/:id', function(req, res){
 	if (!['tokens','courses','mealDeal', 'nextPlayDate'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
-		return
+		return;
 	}
 	
 	let id = parseInt(req.params.id, 10);
@@ -296,7 +293,7 @@ app.get('/reward-pages/:id', function(req, res){
 	}else if(page === 'mealDealConn'){
 		mealDealConn(res);
 	}else if(page === 'nextPlayDate'){
-		getNextPlayDate(res,id)
+		getNextPlayDate(res,id);
 	}
 });
 
@@ -359,7 +356,6 @@ app.patch('/addTokens', function(req,res){
 	if (!(json.nextPlayDate === undefined)){
 		patchNextPlayDate(req,res);
 	}
-	console.log(userid + " " + tokens)
 	db.get(`SELECT Tokens FROM TokensTable WHERE UserID = ${userid}`, function(err,row){
 		if(err){
 			console.log(err.message);			
@@ -413,7 +409,6 @@ function getNextPlayDate(res,id){
 function patchNextPlayDate(req,res){
 	let userid = parseInt(req.body.userID,10);
 	let nextplaydate = req.body.nextPlayDate;
-	console.log(nextplaydate)
 	db.run(`UPDATE TokensTable SET NextPlayDate = "${nextplaydate}" WHERE UserID = ${userid}`, function(err){
 		if (err){
 			console.log(err.message);			
