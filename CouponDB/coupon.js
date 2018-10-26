@@ -75,7 +75,7 @@ eller {
 }
 */
 
-function GetUserCoupons(req,res){
+function GetUserCoupons(id,res){
   db.all(`SELECT * FROM User WHERE userID = ${id}`,function(err,row){
     if(err){console.log(err)}
     else{
@@ -90,7 +90,7 @@ function GetUserCoupons(req,res){
   });
 }
 
-function GetCoupon (req,res){
+function GetCoupon (id, couponID,res){
 db.get(`SELECT * FROM User WHERE userID = ${id}`, function(err, row){
   if (err){
     console.log(err);
@@ -113,6 +113,16 @@ function makeDate (){
   return datenow;
 }
 
+function makeDate2 (y,m,d){
+  if (y=null){y=0;}
+  if (m=null){m=0;}
+  if (d=null){d=0;
+  var d = Date.now
+  d += 1000*60*60*24*d + 1000*60*60*24*30*m + 1000*60*60*24*30*y
+  var datenow = d.toString();
+  return datenow;
+}
+
 function addCoupon(userID, type, value){
   
 var datenow = makeDate;
@@ -130,8 +140,8 @@ let json = req.body;
 //insert into coupon(couponID)
 }
 
-// kan være bedre å ha >= istedenfor localCompare
-function Viability (date2check){
+// skrives om?
+function viability (date2check){
   var d = Date.now;
   var date = d.toString;
   var ans = true;
@@ -160,11 +170,12 @@ function usedCoupon (couponID){
 
 app.post('/addCoupon', function(req,res){
 	let json = req.body;
-	let userID = parseInt(json.userID, 10);
-  let value = parseInt(json.value, 10);
+  let userID = parseInt(json.userID, 10);
   let type = parseInt(json.value, 10);
+  let value = parseInt(json.value, 10);
+  
   var expirationDate = makeDate();
-//addCoupon();
+//addCoupon(userID, type, value); 
   db.get(`SELECT coupons FROM User WHERE userID = ${userID}`, function(err,row){
     if(err){console.log(err);}
     else{
@@ -177,15 +188,18 @@ app.get("/getUserCoupons/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
 
-  GetUserCoupons;
+  GetUserCoupons(userID,res);
 }
 
 app.get("/getCoupon/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
-  let couponID = paseInt(json.couponID, 10);
+  let couponID = parseInt(json.couponID, 10);
+  var checkdate = db.get("SELECT expirationDate FROM coupons WHERE couponID = ${couponID}")
+  if(viability(checkdate== false)){//fjern coupon}
+  
 
-  GetCoupon;
+  GetCoupon(userID,couponID,res);
 }
 
 db.close((err) => {
@@ -194,4 +208,3 @@ db.close((err) => {
   }
   console.log('Close the database connection.');
 });
-
