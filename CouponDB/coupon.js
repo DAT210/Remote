@@ -54,8 +54,9 @@ app.get('/', function (req, res) {
 Json format to reward server:
     {
         UserID: int
-        Value: int
         Type: int
+        Value: int
+        
     }
 */
 
@@ -168,7 +169,7 @@ function usedCoupon (CouponID){
   });
 }
 
-app.post('/addCoupon', function(req,res){
+app.post('/Coupons/', function(req,res){
 	let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let Type = parseInt(json.Value, 10);
@@ -188,14 +189,14 @@ app.post('/addCoupon', function(req,res){
   });
 
 
-app.get("/UserCoupons/:id", function(req,res){
+app.get("/User-Coupons/:id", function(req,res){
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
 
   GetUserCoupons(UserID,res);
 });
 
-app.get("/UserCoupons/:uid/Coupon/:cid", function(req,res){
+app.get("/Coupons/:CouponID", function(req,res){
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let CouponID = parseInt(json.CouponID, 10);
