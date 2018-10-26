@@ -107,3 +107,6 @@ tags
 
 env/dev.env
 package-lock.json
+env/prod.env
+env/test.env
+logdir

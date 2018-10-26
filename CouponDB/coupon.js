@@ -33,7 +33,7 @@ var datenow = d.toString();
 
 const app = express();
 const port = process.env.PORT;
-/*
+
 nunjucks.configure(__dirname, {
 	autoescape: true,
 	express: app
@@ -48,7 +48,7 @@ app.get('/', function (req, res) {
 
 });
  app.use(bodyParser.json());
- */
+ 
 
 /*
 Json format to reward server:
@@ -103,7 +103,7 @@ console.log(row.couponID,row.expirationDate,row.type,row.value);
       }
     });
   }
-}
+});
 }
 
 function makeDate (){
@@ -165,7 +165,7 @@ function usedCoupon (couponID){
 
     }
 
-  }
+  });
 }
 
 app.post('/addCoupon', function(req,res){
@@ -179,32 +179,38 @@ app.post('/addCoupon', function(req,res){
   db.get(`SELECT coupons FROM User WHERE userID = ${userID}`, function(err,row){
     if(err){console.log(err);}
     else{
-      db.run("INSERT INTO coupons(couponID, expirationDate,type, value) VALUES (${userID}, ${expirationDate},${type}, ${value}) ")
+      db.run("INSERT INTO coupons(couponID, expirationDate,type, value) VALUES (${userID}, ${expirationDate},${type}, ${value}) ", function(err,row)
+      {
+        if(err){console.log(err);
+        }
+      });
     }
   });
-}
+
 
 app.get("/getUserCoupons/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
 
   GetUserCoupons(userID,res);
-}
+});
 
 app.get("/getCoupon/:id", function(req,res){
   let json = req.body;
   let userID = parseInt(json.userID, 10);
   let couponID = parseInt(json.couponID, 10);
   var checkdate = db.get("SELECT expirationDate FROM coupons WHERE couponID = ${couponID}")
-  if(viability(checkdate== false)){//fjern coupon}
+  if(viability(checkdate== false)){
+    //fjern coupon
+  }
   
 
   GetCoupon(userID,couponID,res);
-}
+});
 
-db.close((err) => {
+db.close(err) => 
   if (err) {
     console.error(err.message);
   }
   console.log('Close the database connection.');
-});
+};
