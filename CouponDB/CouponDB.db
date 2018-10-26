@@ -1,17 +1,17 @@
 CREATE TABLE User (
- UserID integer PRIMARY KEY,
+ userID integer PRIMARY KEY,
  coupon integer,
  FOREIGN KEY (coupon) REFERENCES coupons (coupon)
  FOREIGN KEY (UserID) REFERENCES UserIDs (UserID)
 );
 
 CREATE TABLE UserIDs (
-UserID integer PRIMARY KEY
+userID integer PRIMARY KEY
 );
 
 CREATE TABLE coupons (
  couponID integer PRIMARY KEY AUTO_INCREMENT,
- expiration_date text,
+ expirationDate text,
  type integer,
  value integer,
  
@@ -21,4 +21,13 @@ CREATE TABLE coupons (
  UserID integer PRIMARY KEY.
  Tokens integer,
  Points integer,
- )
+ );
+
+ CREATE TABLE UsedCoupons (
+ userID integer PRIMARY KEY,
+ couponID integer,
+ expirationDate text,
+ dateOfUse text,
+ type integer,
+ value integer
+ );
