@@ -137,19 +137,20 @@ function makeDate2 (y,m,d){
   return datenow;
 }
 
-function MakeCoupon(Type,Value){
+function MakeCoupon(ExpirationDate, Type,Value){
 let json = req.body
 let Type = parseInt(json.Type,10);
 let Value = parseInt(json.Value,10);
-let ExpirationDate = makeDate();
+let ExpirationDate = ExpirationDate;
 
 db.run('INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate},${Type}, ${Value} )', function(err,row){
   if(err){console.log(err)}
   else {
-    console.log(row.CouponID);
-    console.log(row.ExpirationDate);
-    console.log(row.Type);
-    console.log(row.Value);
+    console.log(`A row has been inserted with CouponID: ${this.CouponID}`);
+   // console.log(row.CouponID);
+    console.log(this.ExpirationDate);
+    console.log(this.Type);
+    console.log(this.Value);
   }
 });
 }
@@ -162,8 +163,8 @@ function add2User(UserID, CouponID){
 db.run(`INSERT INTO UserCoupons (Coupons) VALUES (${CouponID} WHERE UserID = ${UserID})`, function(err,row){
   if (err){console.log(err)}
   else {
-    console.log(row.UserID);
-    console.log(row.CouponID);
+    console.log(this.UserID);
+    console.log(this.CouponID);
   }
 });
 }
@@ -200,6 +201,7 @@ function viability (date2check){
   }
   return ans;
 }
+
 //when a coupon is used, slide it into UsedCoupons
 function UsedCoupon (CouponID){
   db.get(`SELECT * FROM Coupons WHERE CouponID = ${CouponID}`, function(err, row){
@@ -218,7 +220,7 @@ function UsedCoupon (CouponID){
           db.run("DELETE FROM Coupons WHERE CouponID = ${CouponID}", function(err,row){
             if(err){console.log(err);}
             else{
-              console.log("Deleted coupon: " + CouponID);
+              console.log("Deleted coupon: " + this.CouponID);
             }
           });
         }
@@ -227,34 +229,37 @@ function UsedCoupon (CouponID){
   });
 }
 
+app.post('/User-Coupon', function(req,res){
+  let json = req.body;
+  let UserID = parseInt(json.UserID, 10);
+  let Type = parseInt(json.Type,10);
+  let Value = parseInt(json.Value, 10);
+
+  
+});
+
 //gives user a made coupon
 app.post('/User-Coupons', function(req,res){
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let CouponID = parseInt(json.CouponID, 10);
 
-  db.run("INSERT INTO UserCoupons(Coupons) VALUES (CouponID) WHERE UserID = ${UserID}", function(err,res){
-    if(err){console.log(err)}
-    else {
-      console.log(UserID + CouponID);
-    }
-  }
-  );
+  add2User(UserID,CouponID);
   
 
 });
 // Makes a coupon
 app.post('/Coupons/', function(req,res){
   let page = req.body.page;
-//	let json = req.body;
-  let UserID = parseInt(json.UserID, 10);
-  let Type = parseInt(json.Value, 10);
+	let json = req.body;
+ // let UserID = parseInt(json.UserID, 10);
+  let Type = parseInt(json.Type, 10);
   let Value = parseInt(json.Value, 10);
-  
-  var ExpirationDate = makeDate();
-
-MakeCoupon(Type, Value);
-  
+  let ExpirationDate = makeDate();
+if(['ExpirationDate'].includes(page)){
+  ExpirationDate = json.ExpirationDate;
+}
+MakeCoupon(ExpirationDate,Type, Value);
   });
 
 //get coupons user x have
