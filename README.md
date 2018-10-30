@@ -7,6 +7,7 @@ The Reward Service can be used to make deals and cupons.
 
 You can run the Reward service with Docker or Node.
 
+TODO: /env/default.env doesn't exist
 Copy and rename the /env/default.env file and fill in your keys.
 You .env file should be named prod.env if you're running with Docker.
 The service determines which .env file to use based on your NODE_ENV environment variable.
@@ -20,10 +21,10 @@ cd project_directory
 cp ./env/default.env ./env/prod.env
 # Insert your keys
 vi ./env/prod.env
-# Create a Docker image called RewardsService
-docker build -t RewardsService .
+# Create a Docker image called rewardsservice
+docker build -t rewardsservice .
 # Run the image at <port> in detached mode
-docker run -p <port>:3000 -d RewardsService
+docker run -p <port>:3000 -d rewardsservice
 ```
 
 Node
@@ -33,6 +34,7 @@ cd project_directory
 # Install dependencies
 npm install
 # Create .env file
+TODO: tools/setup_env.js doesn't exist
 node tools/setup_env.js
 # Set environment variable
 	# Windows Powershell
@@ -93,11 +95,13 @@ You can configure which port the service runs on and which database you use in a
 
 ### Command line arguments
 
+TODO: This argument doesn't exist
 Arguments:
 - ```--redirect_console_log``` , redirects output from all console.log() calls from stdout to nothing. 
 
 ## Tests
 
+TODO: There are no tests
 Before running any tests you need to set up a /env/test.env file with 
 your api keys.
 
@@ -132,6 +136,7 @@ patch /subTokens
 
 patch /addTokens
 
+TODO: Show complete json format
 post /rewards   (in the json you need an "page": string) ["mealDeal"]
 
 ### Details:
