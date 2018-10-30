@@ -132,7 +132,7 @@ function makeDate2 (y,m,d){
   if (m=null){m=0;}
   if (d=null){d=0;
   var d = Date.now
-  d += 1000*60*60*24*d + 1000*60*60*24*30*m + 1000*60*60*24*30*y
+  d += 1000*60*60*24*d + 1000*60*60*24*30*m + 1000*60*60*24*30**12*y
   var datenow = d.toString();
   return datenow;
 }
@@ -181,9 +181,22 @@ let json = req.body;
   let Value = parseInt(json.Value, 10);
 	let ExpirationDate = datenow;
   
- 
-  db.run('INSERT INTO Coupon(CouponID, ExpirationDate, Type, Value) VALUES (${UserID}, ${ExpirationDate},${Type}, ${Value} )')
-  db.run("INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${?})")
+ //MakeCoupon?
+  db.run('INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value} )',function(err,row){
+    if(err){console.log(err)}
+    else{
+      console.log(this.CouponID);
+      CouponID = this.CouponID;
+    }
+  })
+  // CouponID = lastID?
+  //add2User?
+  db.run("INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${CouponID})", function(err,row){
+    if(err){console.log(err);}
+    else{
+      console.log("Aiit")
+    }
+  });
   
 }
 
@@ -217,10 +230,17 @@ function UsedCoupon (CouponID){
       db.run("INSERT INTO UsedCoupons(CouponID, ExpirationDate, DateOfUse, Type, Value) VALUES (${CouponID}, ${ExpirationDate}, ${DateOfUse}, ${Type}, ${Value})", function(err,row){
         if(err){console.log(err);}
         else{
+          //foreach?
           db.run("DELETE FROM Coupons WHERE CouponID = ${CouponID}", function(err,row){
             if(err){console.log(err);}
             else{
               console.log("Deleted coupon: " + this.CouponID);
+              db.run("DELETE FROM Coupon WHERE CouponID = ${CouponID}",function(err,row){
+                if(err){console.log(err)}
+                else {
+                  console.log("Deleted from Coupon");
+                }
+              });
             }
           });
         }
@@ -229,11 +249,15 @@ function UsedCoupon (CouponID){
   });
 }
 
-app.post('/User-Coupon', function(req,res){
+
+//makes and adds a coupon to user 
+app.post('/user-coupon', function(req,res){
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let Type = parseInt(json.Type,10);
   let Value = parseInt(json.Value, 10);
+
+addCoupon(UserID, Type, Value);
 
   
 });
@@ -263,28 +287,26 @@ MakeCoupon(ExpirationDate,Type, Value);
   });
 
 //get coupons user x have
-app.get("/user-coupons/:userID", function(req,res){
+app.get("/user-coupons/:userID", function(userID,res){
   // TODO FIX: There is no json body in a GET request.
-  let json = req.body;
-  let UserID = parseInt(json.UserID, 10);
+  let UserID = userID;
 
   GetUserCoupons(UserID,res);
 });
 
 //get information about a coupon
-app.get("/coupons/:couponID", function(req,res){
-  // TODO FIX: This is a GET request, there's no json body here.
-  // You should query the database using the couponID parameter.
+app.get("/coupons/:couponID", function(couponID,res){
+  // TODO FIX: This is a GET request, there's no json body here
+  let CouponID = couponID;
 
-  let json = req.body;
-  let UserID = parseInt(json.UserID, 10);
-  let CouponID = parseInt(json.CouponID, 10);
   var checkdate = db.get("SELECT ExpirationDate FROM Coupon WHERE CouponID = ${CouponID}");
   if(viability(checkdate== false)){
     //fjern Coupon
+    UsedCoupon(CouponID);
   }
-  
-  GetCoupon(UserID,CouponID);
+  else{
+  GetCoupon(CouponID);
+}
 });
 
 db.close(err) => 
