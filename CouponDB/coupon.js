@@ -228,7 +228,7 @@ function UsedCoupon (CouponID){
 }
 
 //gives user a made coupon
-app.post('/User-Coupons', function(req,res){
+app.post('/user-coupons', function(req,res){
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let CouponID = parseInt(json.CouponID, 10);
@@ -244,7 +244,7 @@ app.post('/User-Coupons', function(req,res){
 
 });
 // Makes a coupon
-app.post('/Coupons/', function(req,res){
+app.post('/coupons/', function(req,res){
   let page = req.body.page;
 //	let json = req.body;
   let UserID = parseInt(json.UserID, 10);
@@ -258,7 +258,8 @@ MakeCoupon(Type, Value);
   });
 
 //get coupons user x have
-app.get("/User-Coupons/:id", function(req,res){
+app.get("/user-coupons/:userID", function(req,res){
+  // TODO FIX: There is no json body in a GET request.
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
 
@@ -266,7 +267,10 @@ app.get("/User-Coupons/:id", function(req,res){
 });
 
 //get information about a coupon
-app.get("/Coupons/:CouponID", function(req,res){
+app.get("/coupons/:couponID", function(req,res){
+  // TODO FIX: This is a GET request, there's no json body here.
+  // You should query the database using the couponID parameter.
+
   let json = req.body;
   let UserID = parseInt(json.UserID, 10);
   let CouponID = parseInt(json.CouponID, 10);
