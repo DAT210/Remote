@@ -120,8 +120,8 @@ Status code 200 => Coupon exists and information was returned.
 Status code 404 => Coupon doesn't exist and no information was returned.
 Response format
 	{
-		UserID: int
-  		Coupons: []
+	UserID: int
+  	Coupons: []
 	}
 
 GET /User-Coupons/:id
@@ -131,23 +131,23 @@ Status code 200 => Coupon exists and information was returned.
 Status code 404 => Coupon doesn't exist and no information was returned.
 Response format
 	{
-		CouponID: int
-  		ExpirationDate: text
-  		Type: int
-  		Value: int
+	CouponID: int
+	ExpirationDate: text
+	Type: int
+	Value: int
 
 	}
 
 
 POST /Coupons/
 Used to add Coupons.
-Request body format:[
+Request body format:
 	{
 		"UserID":	int,
 		"Type":		int,
 		"Value":	int,
 		
-	}]
+	}
 Database
 This service is built with SQLite, using the sqlite3 package. Database version is based on the version on your system. If you don't have SQLite on your system, version 3.15.0 will be used. You can download SQLite here.
 
