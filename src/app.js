@@ -121,7 +121,6 @@ function isInt(value) {
   return isNaN(value) ? !1 : (x = parseFloat(value), (0 | x) === x);
 }
 function isString(value){
-	console.log(/\S/.test(value))
 	if(!(/\S/.test(value)))return true;
 	else if(value === undefined)return true;
 	
@@ -135,6 +134,18 @@ function dbMealDeal(req,res){
 	let name = json.name;
 	let startdate = json.startDate;
 	let enddate = json.endDate;
+	if (isNaN(new Date(startdate))){
+		let resp = JSON.parse('{}')
+		resp.message = "startDate is wroung";
+		res.status(400).json(resp);
+		return;
+	}
+	if (isNaN(new Date(enddate))){
+		let resp = JSON.parse('{}')
+		resp.message = "endDate is wroung";
+		res.status(400).json(resp);
+		return;
+	}
 	let test = false;
 	let inputError = false;
 	if (isInt(mealdealid) == false) {
@@ -204,6 +215,49 @@ function insertCourses(res,json){
 	}
 }
 
+
+app.get('/rewards', function(req,res){
+	let time = new Date();
+	let n = time.getTime();
+	db.all(`SELECT * FROM MealDeals`, async function(err, row){
+		if (err){
+			resp.message = "Could not get MealDeals";
+			resp.description = err.message;
+			res.status(400).json(resp);
+		} else if (!(row.length > 0)){
+			res.status(404).end();
+		} else{
+			let coursesAll = [];
+			let allCount = 0;
+			for (let counter = 0; counter < row.length; counter++){
+				let rowTimeEnd = new Date(row[counter].EndDate);
+				let rowTimeStart = new Date(row[counter].StartDate);
+				if (rowTimeEnd > time && rowTimeStart < time){
+					let courses = await getCourses(row[counter].DealID);
+					if (courses[0] === 0){
+						res.status(404).end();
+						return;
+					}else if(courses[0] === 1){
+						res.status(400).json(courses[1]);
+						return;
+					}else if(courses[0] === 2){
+						coursesAll[allCount] = ({
+							"dealID": row[counter].DealID,
+							"price": row[counter].Price,
+							"name": row[counter].Name,
+							"startDate": row[counter].StartDate,
+							"endDate": row[counter].EndDate,
+							"courses": courses[2]
+						});
+						allCount++;
+					}
+				}
+			}
+			res.status(200).json(coursesAll);
+		}
+	});
+});
+
 /*
 	Get status about a reward
 
@@ -214,40 +268,30 @@ function insertCourses(res,json){
 
 function getDeal(res,id){
 	let resp = JSON.parse('{}');
-	db.get(`SELECT * FROM MealDeals WHERE DealID = ${id}`, function(err, row){
+	db.get(`SELECT * FROM MealDeals WHERE DealID = ${id}`, async function(err, row){
 		if(err){
 			resp.message = "Could not get MealDeals";
 			resp.description = err.message;
 			res.status(400).json(resp);
 		}else{
 			if(!(row === undefined)){
-				db.all(`SELECT * FROM Courses WHERE DealID = ${row.DealID}`, function(err2,rows2){
-					if(err2){
-						resp.message = "Could not get Courses";
-						resp.description = err2.message;
-						res.status(400).json(resp);
-					}else{
-						if (rows2.length >0){
-							all_CourseID = [];
-							row.Courses = [];
-							for(let counter = 0; counter < rows2.length; counter++){
-								row.Courses[counter] = {"courseID": rows2[counter].CourseID, "numberOfItems": rows2[counter].NumberOfItems };
-							}
-							
-							res.status(200).json({
-								"dealID": row.DealID,
-								"price": row.Price,
-								"name": row.Name,
-								"startDate": row.StartDate,
-								"endDate": row.EndDate,
-								"courses": row.Courses
-							});
-						}else{
-							resp.message = "No Course with mealDealid";
-							res.status(404).json(resp);
-						}
-					}
-				});
+				let courses = await getCourses(row.DealID);
+				if (courses[0] === 0){
+					res.status(404).end();
+				}else if(courses[0] === 1){
+					res.status(400).json(courses[1]);
+				}else if(courses[0] === 2){
+					res.status(200).json({
+						"dealID": row.DealID,
+						"price": row.Price,
+						"name": row.Name,
+						"startDate": row.StartDate,
+						"endDate": row.EndDate,
+						"courses": courses[2]
+					});
+				}else {
+					console.log(courses);
+				}
 			}else{
 				resp.message = "No MealDeal with this id";
 				res.status(404).json(resp);
@@ -255,6 +299,31 @@ function getDeal(res,id){
 		}
 	});
 }
+
+function getCourses(id){
+	let resp = JSON.parse('{}')
+	return new Promise((resolve, reject) => {
+		db.all(`SELECT * FROM Courses WHERE DealID = ${id}`, function(err,rows){
+			if(err){
+				resp.message = "Could not get Courses";
+				resp.description = err.message;
+				resolve([1, resp, null]);
+			}else{
+				if (rows.length >0){
+					allCourses = [];
+					for(let counter = 0; counter < rows.length; counter++){
+						allCourses[counter] = {"courseID": rows[counter].CourseID, "numberOfItems": rows[counter].NumberOfItems };
+					}					
+					resolve([2, null, allCourses]);
+				}else{
+					resp.message = "No Course with mealDealid";
+					resolve([1, resp, null]);
+				}	
+			}
+		});
+	});
+}
+
 
 /*
 	Gets the course
@@ -271,7 +340,6 @@ app.post('/rewards', function(req, res){
 		res.status(404).end();
 		return;
 	}
-	console.log(page)
 	if (page === 'mealDeal'){
 		postDeal(req,res);
 	}
