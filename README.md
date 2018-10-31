@@ -140,70 +140,71 @@ patch /addTokens
 post /rewards
 
 ### Details:
+
 #### GET /rewards 
-  returns all mealDeals that is valid
-  	Respons format{[
-              "dealID":      int,
-              "price":       int,
-              "name":        string,
-              "startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
-              "endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
-              "courses": [
-                  {
-                      "courseID": int,
-                      "numberOfItems": int
-                  }
-                  ...
-              ]]
-	      ...
+ 	returns all mealDeals that is valid
+  		Respons format{[
+              	"dealID":      int,
+              	"price":       int,
+             	"name":        string,
+              	"startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+              	"endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
+              	"courses": [
+                  	{
+                      	"courseID": int,
+                      	"numberOfItems": int
+                  	}
+                  	{...} can be multiple courses
+              	]]
+	      	{...} can be multiple Deals 
             }
 
 #### GET /reward-pages/:Id?page=["tokens", "mealDeal"]
-  Returns the information connected with the request
-   ?page=
-      tokens => gives information about number of tokens of the user
-      mealDeal => gives information about a mealDeal
-            Response format
-            {
-              "dealID":      int,
-              "price":       int,
-              "name":        string,
-              "startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
-              "endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
-              "courses": [
-                  {
-                      "courseID": int,
-                      "numberOfItems": int
+  	Returns the information connected with the request
+   	?page=
+     	tokens => gives information about number of tokens of the user
+      	mealDeal => gives information about a mealDeal
+        	Response format
+            	{
+              	"dealID":      int,
+              	"price":       int,
+              	"name":        string,
+              	"startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+              	"endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
+              	"courses": [
+                {
+                	"courseID": int,
+                      	"numberOfItems": int
                   }
-                  ...
-              ]
+                  {...} can be multiple courses
+              	]
             }
 
 #### patch /addTokens
-  adds or subtracts an amount of tokens from a user negative number for subtractions
-  input format
-  {
-    "userID"
-    "tokens"
-  }
+	adds or subtracts an amount of tokens from a user negative number for subtractions
+  	input format
+  	{
+    	"userID"
+    	"tokens"
+  	}
   
 #### post /rewards?=["mealdeal"]
-mealdeal => makes a new mealDeal
-  input{
-    "page": string,
-    "dealID": int,
-    "price": int,
-    "name": string,
-    "startDate": string,
-    "endDate": string,
-    "courses": [{
-          "courseID": int,
-          "numberOfItems": int
-    }
-          ...
-    ]
+	mealdeal => makes a new mealDeal
+  	input{
+    		"page": string,
+    		"dealID": int,
+    		"price": int,
+    		"name": string,
+    		"startDate": string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+    		"endDate": string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+    		"courses": [{
+        		"courseID": int,
+          		"numberOfItems": int
+    		}
+        	{...} can be multiple courses
+    		]
     
-  }
+  	}
 
 ## Database
 
