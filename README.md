@@ -129,6 +129,7 @@ uses standard jshint style
 The API doesn't require any authentication (yet).
 
 ### Endpoints:
+GET /rewards
 
 GET /reward-pages/:orderId?page=["tokens", "mealDeal"]
 
@@ -136,23 +137,39 @@ patch /subTokens
 
 patch /addTokens
 
-TODO: Show complete json format
-post /rewards   (in the json you need an "page": string) ["mealDeal"]
+post /rewards
 
 ### Details:
+#### GET /rewards 
+  returns all mealDeals that is valid
+  	Respons format{[
+              "dealID":      int,
+              "price":       int,
+              "name":        string,
+              "startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+              "endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
+              "courses": [
+                  {
+                      "courseID": int,
+                      "numberOfItems": int
+                  }
+                  ...
+              ]]
+	      ...
+            }
 
 #### GET /reward-pages/:Id?page=["tokens", "mealDeal"]
   Returns the information connected with the request
    ?page=
       tokens => gives information about number of tokens of the user
       mealDeal => gives information about a mealDeal
-            Responnse format
+            Response format
             {
               "dealID":      int,
               "price":       int,
               "name":        string,
-              "startDate":   string,
-              "endDate:      string,
+              "startDate":   string, // yy-mm-ddThh:mm:ss.mseZ  T and Z is not a number
+              "endDate:      string, // yy-mm-ddThh:mm:ss.mseZ T and Z is not a number
               "courses": [
                   {
                       "courseID": int,
@@ -162,16 +179,8 @@ post /rewards   (in the json you need an "page": string) ["mealDeal"]
               ]
             }
 
-#### patch /subTokens
-  subtracts an amount of tokens from a user
-  input format
-  {
-    "userID"
-    "tokens"
-  }
-  
-#### patch /subTokens
-  adds an amount of tokens from a user
+#### patch /addTokens
+  adds or subtracts an amount of tokens from a user negative number for subtractions
   input format
   {
     "userID"
