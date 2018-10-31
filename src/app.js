@@ -82,6 +82,51 @@ app.get('/', function (req, res) {
 	Create db entry for orderid.
 */
 app.use(bodyParser.json());
+
+
+setTimeout(clearMealDeals,10000)
+
+function clearMealDeals(){
+	console.log("Clean");
+	db.all(`SELECT * FROM mealDeals`, function(err, rows){
+		if (err){
+			console.log("something went wrong with clearMealDeals 1")
+			return;
+		}
+		for(let counter = 0; counter < rows.length; counter++){
+			let time = new Date();
+			let enddate = new Date(rows[counter].EndDate);
+			let startdate = new Date(rows[counter].StartDate);
+			if (enddate < time || isNaN(enddate) || isNaN(startdate)){
+				let id = rows[counter].DealID;
+				db.run(`DELETE FROM MealDeals WHERE DealID = ${id}`, function(err2){
+					if (err2){
+						console.log("something went wrong with delete" + "\n" + err2)
+						return;
+					}
+					db.run(`DELETE FROM Courses WHERE DealID = ${id}`,function(err3){
+						if(err3){
+							console.log("something went wrong with delete 2" + "\n" + err3)
+						}
+					})
+				});
+			}
+		}
+	});
+	
+	
+	
+	
+	setTimeout(clearMealDeals,1000*60*60*24)
+}
+
+
+
+
+
+
+
+
 /*
 	Create MealDeal
 
@@ -198,6 +243,7 @@ function insertCourses(res,json){
 	let courses = json.courses;
 	let mealdealid = parseInt(json.dealID, 10);
 	var BreakException = {};
+	try{
 	for(let counter = 0; counter < courses.length; counter++){
 		courseid = parseInt(courses[counter].courseID);
 		numberofitems = parseInt(courses[counter].numberOfItems);
@@ -207,11 +253,20 @@ function insertCourses(res,json){
 				console.log(err.message);
 				resp.message = "Could not create the MealDeals_Connection";
 				resp.description = err.message + " insert into MealDeals_Connection";
-				res.status(400).json(resp);	
+				res.status(400).json(resp);
+				throw "End";
+				return;
 			}else{
-				res.status(201).end();
+				if(counter + 1 == courses.length){
+					res.status(201).end();
+				}
 			}
 		});
+	}
+	}catch(e){
+		if(e){
+			return;
+		}
 	}
 }
 
