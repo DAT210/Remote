@@ -216,7 +216,7 @@ function insertCourses(res,json){
 }
 
 
-app.get('/rewards/test', function(req,res){
+app.get('/rewards', function(req,res){
 	let time = new Date();
 	let n = time.getTime();
 	db.all(`SELECT * FROM MealDeals`, async function(err, row){
@@ -235,7 +235,7 @@ app.get('/rewards/test', function(req,res){
 				if (rowTimeEnd > time && rowTimeStart < time){
 					let courses = await getCourses(row[counter].DealID);
 					if (courses[0] === 0){
-						res.status(404).end()
+						res.status(404).end();
 						return;
 					}else if(courses[0] === 1){
 						res.status(400).json(courses[1]);
@@ -253,7 +253,7 @@ app.get('/rewards/test', function(req,res){
 					}
 				}
 			}
-			res.status(200).json(coursesAll)
+			res.status(200).json(coursesAll);
 		}
 	});
 });
@@ -277,7 +277,7 @@ function getDeal(res,id){
 			if(!(row === undefined)){
 				let courses = await getCourses(row.DealID);
 				if (courses[0] === 0){
-					res.status(404).end()
+					res.status(404).end();
 				}else if(courses[0] === 1){
 					res.status(400).json(courses[1]);
 				}else if(courses[0] === 2){
@@ -290,7 +290,7 @@ function getDeal(res,id){
 						"courses": courses[2]
 					});
 				}else {
-					console.log(courses)
+					console.log(courses);
 				}
 			}else{
 				resp.message = "No MealDeal with this id";
