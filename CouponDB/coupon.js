@@ -25,7 +25,7 @@ db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER PRIMARY KEY, Coupo
 var d= Date.now ;
 var datenow = d.toString();
 
- db.run('CREATE TABLE IF NOT EXISTS Coupon(CouponID INTEGER PRIMARY KEY AUTO_INCREMENT, ExpirationDate TEXT, Type INTEGER, Value INTEGER) ', function(err){if (err){
+ db.run(`CREATE TABLE IF NOT EXISTS Coupon(CouponID INTEGER PRIMARY KEY AUTO_INCREMENT, ExpirationDate TEXT, Type INTEGER, Value INTEGER) `, function(err){if (err){
    console.log(err.message);
  }
 });
@@ -96,13 +96,13 @@ function GetUserCoupons(id,res){
       db.each(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID =${id}`,function(err,row){
         if(err){console.log(err)}
         else{
-          console.log(UserID)
+          console.log(UserID);
 
 rows.array.forEach((row) => {
   console.log(row.Coupons);
 });
           console.log(row.Amount);
-          console.log(row.Used)
+          console.log(row.Used);
         }
       });
     }
@@ -143,7 +143,7 @@ let Type = parseInt(json.Type,10);
 let Value = parseInt(json.Value,10);
 let ExpirationDate = ExpirationDate;
 
-db.run('INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate},${Type}, ${Value} )', function(err,row){
+db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate},${Type}, ${Value} )`, function(err,row){
   if(err){console.log(err)}
   else {
     console.log(`A row has been inserted with CouponID: ${this.CouponID}`);
@@ -155,16 +155,26 @@ db.run('INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate
 });
 }
 
-function add2User(UserID, CouponID){
+function add2User(UserID, CouponID, Amount, Used){
   let json = req.body
   let UserID = parseInt(json.Type,10);
   let CouponID = parseInt(json.CouponID,10);
+  if(![Amount].includes(page) && ![Used].includes(page) ){
+    let Amount = 1;
+    let Used = 0;
+  }
+  else {
+  let Amount = parseInt(json.Amount,10);
+  let Used = parseInt(json.Used,10);
+  }
 
-db.run(`INSERT INTO UserCoupons (Coupons) VALUES (${CouponID} WHERE UserID = ${UserID})`, function(err,row){
+db.run(`INSERT INTO UserCoupons (Coupons, Amount, Used) VALUES (${CouponID}, ${Amount}, ${Used}) WHERE UserID = ${UserID})`, function(err,row){
   if (err){console.log(err)}
   else {
     console.log(this.UserID);
     console.log(this.CouponID);
+    console.log(this.Amount);
+    console.log(this.Used);
   }
 });
 }
@@ -174,7 +184,6 @@ db.run(`INSERT INTO UserCoupons (Coupons) VALUES (${CouponID} WHERE UserID = ${U
 function addCoupon(UserID, Type, Value){
   
 var datenow = makeDate;
-
 let json = req.body;
 	let UserID = parseInt(json.UserID, 10);
   let Type = parseInt(json.Type, 10);
@@ -182,7 +191,7 @@ let json = req.body;
 	let ExpirationDate = datenow;
   
  //MakeCoupon?
-  db.run('INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value} )',function(err,row){
+  db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value} )`,function(err,row){
     if(err){console.log(err)}
     else{
       console.log(this.CouponID);
@@ -191,13 +200,12 @@ let json = req.body;
   })
   // CouponID = lastID?
   //add2User?
-  db.run("INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${CouponID})", function(err,row){
+  db.run(`INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${CouponID})`, function(err,row){
     if(err){console.log(err);}
     else{
       console.log("Aiit")
     }
   });
-  
 }
 
 // checks expirationdate
@@ -215,36 +223,35 @@ function viability (date2check){
   return ans;
 }
 
-//when a coupon is used, slide it into UsedCoupons
-function UsedCoupon (CouponID){
-  db.get(`SELECT * FROM Coupons WHERE CouponID = ${CouponID}`, function(err, row){
-    if (err){
-      console.log(err.message);
-    }
+//gets expiration date from couponID
+function getExpirationDate(CouponID){
+  db.get(`SELECT ExpirationDate FROM Coupon WHERE CouponID = ${CouponID}`, function(err,row){
+    if(err){console.log(err);}
     else {
-     let CouponID = row.CoponID;
-      let ExpirationDate = row.ExpirationDate;
-      let DateOfUse = date.now.toString;
-      let Type = row.Type;
-      let Value =row.Value;
-      db.run("INSERT INTO UsedCoupons(CouponID, ExpirationDate, DateOfUse, Type, Value) VALUES (${CouponID}, ${ExpirationDate}, ${DateOfUse}, ${Type}, ${Value})", function(err,row){
-        if(err){console.log(err);}
-        else{
-          //foreach?
-          db.run("DELETE FROM Coupons WHERE CouponID = ${CouponID}", function(err,row){
-            if(err){console.log(err);}
-            else{
-              console.log("Deleted coupon: " + this.CouponID);
-              db.run("DELETE FROM Coupon WHERE CouponID = ${CouponID}",function(err,row){
-                if(err){console.log(err)}
-                else {
-                  console.log("Deleted from Coupon");
-                }
-              });
-            }
-          });
-        }
-      });
+     let checkdate = this.ExpirationDate;
+    }
+    return checkdate;
+});}
+
+
+//when a coupon is used, update Used
+function UsedCoupon (UserID, CouponID){
+  var uses = 0;
+  var Amount = 1;
+  db.get(`SELECT UserCoupons(Used, Amount) WHERE UserID = ${UserID}, Coupons = ${CouponID}`,function(err,row){
+    if(err){console.log(err)}
+    else {
+      uses = this.Used;
+      uses += 1;
+      Amount = this.Amount;
+    }
+  } );
+  db.run(`UPDATE INTO UserCoupons(Used) WHERE UserID = ${UserID} VALUES(uses)`,function(err,row){
+    if(err){console.log(err)}
+    else {
+
+console.log("Uses: " + uses + " of: " + Amount);
+
     }
   });
 }
@@ -259,7 +266,6 @@ app.post('/user-coupon', function(req,res){
 
 addCoupon(UserID, Type, Value);
 
-  
 });
 
 //gives user a made coupon
@@ -276,7 +282,6 @@ app.post('/user-coupons', function(req,res){
 app.post('/coupons/', function(req,res){
   let page = req.body.page;
 	let json = req.body;
- // let UserID = parseInt(json.UserID, 10);
   let Type = parseInt(json.Type, 10);
   let Value = parseInt(json.Value, 10);
   let ExpirationDate = makeDate();
@@ -286,9 +291,21 @@ if(['ExpirationDate'].includes(page)){
 MakeCoupon(ExpirationDate,Type, Value);
   });
 
+  app.patch('/use-coupon/', function(req, res){
+    let page = req.body.page
+    let json = req.body;
+    let UserID = parseInt(json.UserID,10);
+    let CouponID = parseInt(json.CouponID, 10);
+    if(!['UserID','CouponID'].includes(page)){
+      console.log("trenger UserID og CouponID");
+    }
+    else {
+      UsedCoupon(UserID, CouponID);
+    }
+  });
+
 //get coupons user x have
 app.get("/user-coupons/:userID", function(userID,res){
-  // TODO FIX: There is no json body in a GET request.
   let UserID = userID;
 
   GetUserCoupons(UserID,res);
@@ -296,22 +313,17 @@ app.get("/user-coupons/:userID", function(userID,res){
 
 //get information about a coupon
 app.get("/coupons/:couponID", function(couponID,res){
-  // TODO FIX: This is a GET request, there's no json body here
   let CouponID = couponID;
+checkdate = getExpirationDate(CouponID);
 
-  var checkdate = db.get("SELECT ExpirationDate FROM Coupon WHERE CouponID = ${CouponID}");
-  if(viability(checkdate== false)){
-    //fjern Coupon
+  if(viability(checkdate)== false){
+    //sets used +1 or used=amount
     UsedCoupon(CouponID);
+    console.log("Coupon out of date");
   }
   else{
-  GetCoupon(CouponID);
+  GetCoupon(CouponID,res);
 }
 });
 
-db.close(err) => 
-  if (err) {
-    console.error(err.message);
-  }
-  console.log('Close the database connection.');
-});
+db.close();}

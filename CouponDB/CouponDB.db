@@ -21,11 +21,4 @@ CREATE TABLE Coupon (
  Points INTEGER,
  );
 
- CREATE TABLE UsedCoupons (
- UserID INTEGER PRIMARY KEY,
- CouponID INTEGER,
- ExpirationDate TEXT,
- DateOfUse TEXT,
- Type INTEGER,
- Value INTEGER
- );
+ 
