@@ -6,7 +6,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 const path = require('path')
 var dbPath = path.resolve(__dirname, 'CouponDB.db')
-var db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE , (err) => {
+let db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE , (err) => {
   if (err){console.error(err.message);
   }
   console.log('Connected')
@@ -16,11 +16,8 @@ db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER PRIMARY KEY, Coupo
 	if (err) {
     console.log(err.message);
   }
+  else {console.log("UserCoupons serialized")}
 	});
-
- db.run('CREATE TABLE IF NOT EXISTS UserIDs(UserID INTEGER PRIMARY KEY)', function(err){if (err){
-   console.log(err.message);
- }});
 
 var d= Date.now ;
 var datenow = d.toString();
@@ -48,6 +45,10 @@ app.get('/', function (req, res) {
 
 });
  app.use(bodyParser.json());
+
+ 
+ app.listen(port), function(err){if (err){console.log(err);}
+else {console.log("listening on port:", port);}}
  
 
 /*
@@ -90,19 +91,18 @@ eller {
 */
 
 function GetUserCoupons(id,res){
+  let resp = JSON.parse('{}')
   db.all(`SELECT * FROM UserCoupons WHERE UserID = ${id}`,function(err,row){
     if(err){console.log(err)}
     else{
       db.each(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID =${id}`,function(err,row){
         if(err){console.log(err)}
         else{
-          console.log(UserID);
-
-rows.array.forEach((row) => {
-  console.log(row.Coupons);
-});
-          console.log(row.Amount);
-          console.log(row.Used);
+let coupons = [];
+      rows.array.forEach((row) => {
+       coupons += row.Coupons;
+      });
+          res.status(200).json({"UserID": id, "Coupons": coupons, "Amount": row.Amount, "Used": row.Used })
         }
       });
     }
@@ -110,10 +110,11 @@ rows.array.forEach((row) => {
 }
 
 function GetCoupon (CouponID,res){
-    db.get(`SELECT CouponID,ExpirationDate,Type,Value FROM Coupon WHERE CouponID = ${CoponID}`, function (err,row){
+    db.get(`SELECT CouponID,ExpirationDate,Type,Value FROM Coupon WHERE CouponID = ${CouponID}`, function (err,row){
       if(err){console.log(err)}
       else{
-console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
+//console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
+res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Used": row.Value })
       }
     });
   
@@ -137,26 +138,27 @@ function makeDate2 (y,m,d){
   return datenow;
 }
 
-function MakeCoupon(ExpirationDate, Type,Value){
+function MakeCoupon(req, res){
 let json = req.body
 let Type = parseInt(json.Type,10);
 let Value = parseInt(json.Value,10);
-let ExpirationDate = ExpirationDate;
+let ExpirationDate = makeDate;
+if(['ExpirationDate'].includes(page)){
+  ExpirationDate = json.ExpirationDate;
+}
 
 db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate},${Type}, ${Value} )`, function(err,row){
   if(err){console.log(err)}
   else {
     console.log(`A row has been inserted with CouponID: ${this.CouponID}`);
-   // console.log(row.CouponID);
-    console.log(this.ExpirationDate);
-    console.log(this.Type);
-    console.log(this.Value);
+    res.status(200).json({"CouponID": this.CouponID, "ExpirationDate": this.ExpirationDate, "Type": this.Type, "Value": this.Value });
   }
 });
 }
 
-function add2User(UserID, CouponID, Amount, Used){
+function add2User(req,res){
   let json = req.body
+  let resp = json.parse('{}')
   let UserID = parseInt(json.Type,10);
   let CouponID = parseInt(json.CouponID,10);
   if(![Amount].includes(page) && ![Used].includes(page) ){
@@ -169,19 +171,19 @@ function add2User(UserID, CouponID, Amount, Used){
   }
 
 db.run(`INSERT INTO UserCoupons (Coupons, Amount, Used) VALUES (${CouponID}, ${Amount}, ${Used}) WHERE UserID = ${UserID})`, function(err,row){
-  if (err){console.log(err)}
+  if (err){console.log(err)
+  resp.message = "something went wrong"
+res.status(400).json(resp);}
   else {
-    console.log(this.UserID);
-    console.log(this.CouponID);
-    console.log(this.Amount);
-    console.log(this.Used);
+  
+    res.status(200).json({"UserID": this.UserID,"CouponID": this.CouponID, "Amount": this.Amount, "Used": this.Used })
   }
 });
 }
 
 
 
-function addCoupon(UserID, Type, Value){
+function addCoupon(req, res){
   
 var datenow = makeDate;
 let json = req.body;
@@ -194,16 +196,15 @@ let json = req.body;
   db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value} )`,function(err,row){
     if(err){console.log(err)}
     else{
-      console.log(this.CouponID);
+     // console.log(this.CouponID);
       CouponID = this.CouponID;
     }
   })
-  // CouponID = lastID?
   //add2User?
   db.run(`INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${CouponID})`, function(err,row){
     if(err){console.log(err);}
     else{
-      console.log("Aiit")
+      res.status(200).json({"UserID": this.UserID,"CouponID": this.CouponID, "Amount": this.Amount, "Used": this.Used });
     }
   });
 }
@@ -260,35 +261,21 @@ console.log("Uses: " + uses + " of: " + Amount);
 //makes and adds a coupon to user 
 app.post('/user-coupon', function(req,res){
   let json = req.body;
-  let UserID = parseInt(json.UserID, 10);
-  let Type = parseInt(json.Type,10);
-  let Value = parseInt(json.Value, 10);
 
-addCoupon(UserID, Type, Value);
+addCoupon(req, res);
 
 });
 
 //gives user a made coupon
 app.post('/user-coupons', function(req,res){
   let json = req.body;
-  let UserID = parseInt(json.UserID, 10);
-  let CouponID = parseInt(json.CouponID, 10);
-
-  add2User(UserID,CouponID);
-  
-
+  add2User(req,res);
 });
 // Makes a coupon
 app.post('/coupons/', function(req,res){
   let page = req.body.page;
 	let json = req.body;
-  let Type = parseInt(json.Type, 10);
-  let Value = parseInt(json.Value, 10);
-  let ExpirationDate = makeDate();
-if(['ExpirationDate'].includes(page)){
-  ExpirationDate = json.ExpirationDate;
-}
-MakeCoupon(ExpirationDate,Type, Value);
+MakeCoupon(req,res);
   });
 
   app.patch('/use-coupon/', function(req, res){
