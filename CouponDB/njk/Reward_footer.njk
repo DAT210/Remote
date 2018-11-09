@@ -1,0 +1,219 @@
+<div id="main-content-footer-container">
+	<div class="footer-container" id="main-reward-footer-left">
+		<div class="back-btn-container">
+			<button class="button" type="button" name="back-button" onclick="navigateBackToOrderPage()">BACK</button>
+		</div>
+	</div>
+
+<div class="footer-container" id="main-reward-footer-left">
+		<div id="MealDeal-container">
+			<button class="button" type="button" name="insert-mealDeal" onclick="addDeal()">add-mealDeal</button>
+		
+	<script>
+	datenow = new date().getTime();
+
+	</script>
+	</div>
+
+			<label for="dealID">dealID:</label>
+			<input id="dealID" type="text" name="dealID" placeholder="dealID">{{ dealID if dealID else 0 }}</input><br>
+			
+
+			<label for="name">name:</label>
+			<input id="name" type="text" name="name" placeholder="navn">{{ name if name else "no-name" }}</input><br>
+			
+
+			<label for="price">price:</label>
+			<input id="price" type="text" name="price" placeholder="pris" min="0">{{ price if price else 0 }}</input><br>
+			
+
+			<label for="startDate">startDate:</label>
+			<input id="startDate" type="date" name="startDate" placeholder="yyyy-mm-dd" required>{{ startDate if startDate else datenow }}</input><br>
+			
+
+			<label for="endDate">endDate:</label>
+			<input id="endDate" type="date" name="endDate" placeholder="yyyy-mm-dd" required>{{ endDate if endDate else datenow }}</input><br>
+			
+
+			<label for="courses">courses:</label>
+			<input id="courses" type="text" name="courses" placeholder="courses">{{ courses if courses else "0" }}</input><br>
+<script>
+		function addDeal() {
+			let dealID = parseInt(document.getElementById("dealID").value, 10);
+			let name = parseInt(document.getElementById("name").value, 10);
+			let price = parseInt(document.getElementById("price").value, 10);
+			let startDate = parseInt(document.getElementById("startDate").value, 10);
+			let endDate = parseInt(document.getElementById("endDate").value, 10);
+			let courses = parseInt(document.getElementById("courses").value, 10);
+
+			const http = new XMLHttpRequest();
+			const url = '/reward-pages/id?method=post';
+			http.open('POST', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+			let json = JSON.parse('{}');
+			json.dealID = dealID;
+			json.nameID = nameID;
+			json.price = price;
+			json.startDate = startDate;
+			json.endDate = endDate;
+			json.courses = courses;
+
+			http.send(JSON.stringify(json));
+
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					window.location.href = '/reward-pages/id?method=post'
+				}
+			}
+		}
+	</script>
+	</div>
+
+	<div class="footer-container" id="main-reward-footer-middle">
+		<form id="main-reward-footer-modifier" onsubmit="return false">
+			<script>
+
+			function updateCouponView(){
+				let json = Get("reward/coupon/:id")
+				let couponID = parseInt(json.couponID, 10); 
+				let expirationDate = parse(json.expirationDate, 10);
+				let couponType = parseInt(json.type, 10);
+				let couponValue = parseInt(json.value, 10);
+				coupon.id = couponID;
+				coupon.expirationDate = expirationDate;
+				coupon.type = couponType;
+				coupon.value = couponValue;
+				e.couponID = couponID;
+				e.expirationDate = expirationDate;
+				e.type = couponType;
+				e.value = couponValue;
+			}
+
+			function updateCoupons(){
+				let id = document.getElementById("user").value;
+				let userCoupons = Get("reward/user-coupons/:id");
+				//coupons for loop?
+				let coupons = [integer];
+				 coupons = parseInt(userCoupons.coupons, 10);
+
+				 let selectCoupon = document.getElementById("selectCoupon");
+				 selectCoupon.value = coupons(1);
+			}
+
+			function updateMealDeals(){
+				let id = document.getElementById("user").value;
+				let json = Get('reward-pages/:id?page=MealDeal');
+				let dealID = parseInt(json.dealID);
+				let price = parseInt(json.price);
+				let name = parse(json.name);
+				let startDate = parse(json.startDate);
+				let endDate = parse(json.endDate);
+				let courses = [{}||{}];
+				 courses = parse(json.courses);
+				 d.dealID = dealID;
+				 d.price = price;
+				 d.name = name;
+				 d.startDate = startDate;
+				 d.endDate = endDate;
+				 d.courses = courses;
+			}
+
+
+
+			function Get(theUrl);
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+		</script>
+			<label for="user">User:</label>
+			<input id="user" onchange="updateCoupons()" type="text" name="user" placeholder="skriv brukerID"><br>
+
+			<label for="selectCoupon">Velg kupong:</label>
+			<select id="selectCoupon" name="selectCoupon" onload="" onchange="updateCouponView(); ">
+				<option value="none||none" selected>No coupon</option>
+				{% for coupon in coupons %}
+				<option value="{{coupon.type}}||{{coupon.value}}">{{ coupon.value }}{{ "%" if coupon.type == 0 else "kr" }}</option>
+				{% endfor %}
+			</select><br>
+			
+
+			<label for="Ctype">Ctype:</label>
+			<select id="Ctype" type="text" name="Ctype" placeholder="%"> {{ "%" if Ctype.value == 0 else "kr" }}
+			<option value ="0" selected>0</option>
+			<option value ="1" selected>1</option>
+			 </select><br>
+
+ //TODO: type 1 = max > 100;
+			<label for="Cvalue">Cvalue:</label>
+			<input id="Cvalue" type="text" name="Cvalue" placeholder="verdi" min="0" max="100">{{ Cvalue if Cvalue else 0 }}</input><br>
+
+			<label for="CexpirationDate">Cexpiration:</label>
+			<input id="CexpirationDate" type="date" name="CexpirationDate" placeholder="skriv inn dato">{{ CexpirationDate if Cexpiration else datenow }}</input><br>
+		</form>
+	</div>
+
+	<div class="footer-container" id="main-reward-footer-right">
+		<div id="add-btn-container">
+			<button class="button" type="button" name="add-button" onclick="addCoupon()">addCoupon</button>
+		</div>
+	</div>
+
+	<script>
+		function addCoupon() {
+			let type = parseInt(document.getElementById("Ctype").value, 10);
+			let value = parseInt(document.getElementById("Cvalue").value, 10);
+			let expirationDate = parseInt(document.getElementById("CexpirationDate").value, 10);
+
+			const http = new XMLHttpRequest();
+			const url = '/rewards/coupons';
+			http.open('POST', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+			let json = JSON.parse('{}');
+			json.type = type;
+			json.value = value;
+			json.expirationDate = expirationDate;
+
+			http.send(JSON.stringify(json));
+
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					window.location.href = '/reward-pages/coupons?page=coupon'
+				}
+			}
+		}
+	</script>
+
+	<div class="footer-container" id="main-reward-footer-right2">
+		<div id="give-btn-container">
+			<button class="button" type="button" name="give-button" onclick="giveCoupon()">giveCoupon</button>
+		</div>
+	</div>
+	<script>
+		function giveCoupon() {
+			let userID = parseInt(document.getElementById("user").value, 10);
+			let couponID = parseInt(document.getElementById("coupon").value, 10);
+
+			const http = new XMLHttpRequest();
+			const url = '/rewards/user-coupons';
+			http.open('PACTH', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+			let json = JSON.parse('{}');
+			json.userID = userID;
+			json.couponID = couponID;
+
+			http.send(JSON.stringify(json));
+
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					window.location.href = '/reward-pages/user-coupon?page=coupon'
+				}
+			}
+		}
+	</script>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+	<title>{% block title %} Our Restaurant {% endblock %}</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--===============================================================================================-->
+	<link href="https://fonts.googleapis.com/?family=Montserrat:400,700" rel="stylesheet">
+	<!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="/static//static/images/icons/favicon.png" />
+	<!--===============================================================================================-->
+	<!--[htmlclean-protect]-->
+	<!-- inject: -->
+	<!-- endinject -->
+	<!--[/htmlclean-protect]-->
+		<link rel="stylesheet" href="/static/StyleSheet.css">
+		<link rel="stylesheet" href="/static/main.css">
+		<link rel="stylesheet" href="/static/util.css">
+	</head>
+
+	<body>
+
+		<!-- Header -->
+	 	{% include "njk/header.njk" %}
+		<!-- Sidebar -->
+		{% include "njk/sidebar.njk" %}
+
+		{% block content %}  {% endblock %}
+
+		<!-- Footer -->
+		{% include "njk/footer.njk" %}
+		<!-- Back to top -->
+		{% include "njk/backtotop.njk" %}
+		<!-- Container Selection1 -->
+
+	</body>
+</html>
