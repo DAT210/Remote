@@ -372,6 +372,7 @@ function getCourses(id){
 					resolve([2, null, allCourses]);
 				}else{
 					resp.message = "No Course with mealDealid";
+					console.log(rows)
 					resolve([1, resp, null]);
 				}	
 			}
@@ -429,7 +430,7 @@ app.get('/reward-pages/:id', function(req, res){
 */
 
 function getTokens(res, id){
-	
+	console.log(id)
 	db.get(`SELECT Tokens, NextPlayDate from TokensTable WHERE UserID = ${id}`, function(err, row){
 		if(err){
 			let resp = JSON.parse('{}');
@@ -476,6 +477,7 @@ app.patch('/addTokens', function(req,res){
 	
 	let userid = parseInt(json.userID, 10);
 	let tokens = parseInt(json.tokens, 10);
+	console.log("tokens: " + tokens);
 	if (!(json.nextPlayDate === undefined)){
 		patchNextPlayDate(req,res);
 	}
@@ -523,7 +525,7 @@ function getNextPlayDate(res,id){
 				resp.message = "User does not exist";
 				res.status(404).json(resp);
 			}else{
-				res.status(200).json({"gameTime": row.GameTime});
+				res.status(200).json({"nextPlayDate": row.NextPlayDate});
 			}
 		}
 	});

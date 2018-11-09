@@ -112,3 +112,4 @@ env/test.env
 package-lock.json
 logdir/
 db/dev.db
+db/test.db
