@@ -8,9 +8,13 @@ if (envfile === undefined) {
 	return;
 }
 
+//other files
+
+
 require('dotenv').config({
 	path: path.resolve(__dirname, `../env/${envfile}.env`)
 });
+
 
 // List all envVariables that are going to be tested
 let requiredEnv = [
@@ -40,8 +44,9 @@ const bodyParser = require('body-parser');
 
 const sqlite3 = require('sqlite3').verbose();
 
-let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
+//coupon
 
+let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
 
 db.run('CREATE TABLE IF NOT EXISTS TokensTable(UserID INTEGER PRIMARY KEY, Tokens INTEGER, NextPlayDate TEXT)',function(err){
 	if(err){
@@ -59,6 +64,18 @@ db.run('CREATE TABLE IF NOT EXISTS Courses(DealID INTEGER, CourseID INTEGER, Num
 		console.log(err.message);
 	}
 });
+db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER PRIMARY KEY, Coupons INTEGER, FOREIGN KEY (Coupons) REFERENCES Coupon (Coupons))', function(err) {
+	if (err) {
+    console.log(err.message);
+  }
+  else {console.log("UserCoupons serialized")}
+});
+
+ db.run(`CREATE TABLE IF NOT EXISTS Coupon(CouponID INTEGER PRIMARY KEY, ExpirationDate TEXT, Type INTEGER, Value INTEGER) `, function(err){if (err){
+   console.log(err.message);
+ }
+});
+ 
 
 const app = express();
 const port = process.env.PORT;
@@ -69,19 +86,22 @@ nunjucks.configure(__dirname, {
 	express: app
 });
 
-app.use(express.static(__dirname, + '/static'));
+app.use(express.static(__dirname, + '../couponDB/static'));
 
-// Example route
-app.get('/', function (req, res) {
-
-	res.render('reward.html');
-
-});
-
-/*
-	Create db entry for orderid.
-*/
 app.use(bodyParser.json());
+
+
+
+
+
+const coupon = new(require('../CouponDB/coupon.js'))(db);
+
+app.post('/user_coupons', (req,res) => coupon.post_user_coupons(req,res));
+app.post('/user_coupon', (req,res) => coupon.post_user_coupon(req,res));
+app.post('/coupons/', (req,res) => coupon.post_coupons(req,res));
+app.patch('/use_coupon/', (req, res) => coupon.patch_use_coupon(req,res)); 
+app.get("/user_coupons/:userID", (req,res) => coupon.get_user_coupons(req,res));
+app.get("/coupons/:couponID", (req,res) => coupon.get_coupons(req,res));
 
 
 setTimeout(clearMealDeals,10000)

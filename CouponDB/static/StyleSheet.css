@@ -1,4 +1,4 @@
-.payment {
+.Reward {
     margin-top: 120px;
     border-top: 1em solid #222222;
     width: 100%;
@@ -12,29 +12,42 @@
     margin: 2em auto 0 auto;
     background-color: #222222;
     border: 1px solid grey;
-    width: 95%;
+    width: 45%;
     height: 60%;
     color: grey;
 }
 
-#paymenttable * {
+#MealDeal * {
     text-align: center;
 }
 
-#paymenttable tr:nth-child(even) {
+#MealDeal tr:nth-child(even) {
     background: #CCC
 }
 
-#paymenttable tr:nth-child(odd) {
+#MealDeal tr:nth-child(odd) {
     background: #FFF
 }
 
-#cashpreview td {
-    padding: 10em 1em 0 1em;
+.preview2 {
+    margin: 2em auto 0 auto;
+    background-color: #222222;
+    border: 1px solid grey;
+    width: 45%;
+    height: 60%;
+    color: grey;
 }
 
-#cashpreviewleft {
-    text-align: right;
+#Coupon * {
+    text-align: center;
+}
+
+#Coupon tr:nth-child(even) {
+    background: #CCC
+}
+
+#Coupon tr:nth-child(odd) {
+    background: #FFF
 }
 
 .cupon-select {
@@ -53,9 +66,6 @@ table {
     width: 0px;
 }
 
-.cashpayment {
-    top: 50%;
-}
 
 
 /************************* FOOTER ********************************/
@@ -73,7 +83,7 @@ table {
 }
 
 #main-content-footer-container {
-    width: 95%;
+    width: 35%;
     margin: auto;
     margin-top: 1em;
 }
@@ -91,44 +101,48 @@ table {
     margin: auto;
 }
 
-#pay-btn-container,
-#cash-container-btn {
+#add-btn-container,
+#add-button {
     width: 33%;
     margin: auto;
 }
 
 
 /*
-PAYMENT
+reward
 */
 
-#main-payment-footer-left {
+#main-reward-footer-left {
     width: 25%;
 }
 
-#main-payment-footer-middle {
-    width: 50%;
+#main-reward-footer-middle {
+    width: 25%;
 }
 
-#main-payment-footer-right {
+#main-reward-footer-right {
+    width: 25%;
+}
+
+#main-reward-footer-right2 {
     width: 25%;
 }
 
 #main-container {
     width: 100%;
-    height: 300px;
+    height: 250px;
     background-color: black;
     margin-top: 200px;
 }
 
 #container {
     width: 40%;
-    height: 100%;
+    height: 80%;
     margin: auto;
     text-align: center;
 }
 
-#main-payment-footer-modifier {
+#main-reward-footer-modifier {
     margin: auto;
     line-height: 30px;
     font-size: 20px;
@@ -150,36 +164,28 @@ select {
 
 
 /*
-CHOOSEPAY
+knapper her?
 */
 
-.payment_option_container {
+.reward_option_container {
     float: left;
     width: 33%;
 }
 
-#choose-payment-footer-left {
+#choose-reward-footer-left {
     width: 25%;
 }
 
-#choose-payment-footer-right {
-    width: 75%;
+#choose-reward-footer-right {
+    width: 50%;
+}
+
+#choose-reward-footer-right2 {
+    width: 50%;
 }
 
 
-/*
-CASHPAY
-*/
 
-#cash-payment-footer-left {
-    width: 25%;
-}
-
-#cash-payment-footer-right {
-    width: 25%;
-    left: 50%;
-    position: relative;
-}
 
 
 /*https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_modal*/
