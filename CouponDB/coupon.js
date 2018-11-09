@@ -13,37 +13,39 @@ module.exports = class Handlers{
 	//gives user a made coupon
 	post_user_coupons(req,res){
 		let json = req.body;
-		add2User(req,res,this.db);
+		add2User(json,res,this.db, true);
 	}
 // Makes a coupon
 	post_coupons(req,res){
-		MakeCoupon(req,res,this.db);
+		MakeCoupon(req,res,this.db, true);
 	}
 	patch_use_coupon(req,res){
-		let page = req.body.page
 		let json = req.body;
-		let UserID = parseInt(json.UserID,10);
-		let CouponID = parseInt(json.CouponID, 10);
-		if(!['UserID','CouponID'].includes(page)){
+
+		//fix
+		if(json.UserID === undefined || json.CouponID === undefined){
 			console.log("trenger UserID og CouponID");
-		}
-		else {
-			UsedCoupon(UserID, CouponID,this.db);
+			res.status(400).end()
+		}else{
+			let UserID = parseInt(json.UserID,10);
+			let CouponID = parseInt(json.CouponID, 10);
+			UsedCoupon(UserID, CouponID, res, this.db);
 		}
 	}
 
 	//get coupons user x have
-	get_user_coupons(req,res){
-		let UserID = req.params.userID;
+	get_user_coupons(res,id){
+		let UserID = id;
 		GetUserCoupons(UserID,res,this.db);		
 	}
 	
 	//get information about a coupon
-	get_coupons(req,res){
-		let CouponID = req.params.couponID;
-		checkdate = getExpirationDate(CouponID);
+	get_coupons(res,id){
+		let CouponID = id;
+		let checkdate = ExpirationDateAwait(CouponID,this.db);
 		if(viability(checkdate)== false){
 			//sets used +1 or used=amount
+			//fix
 			UsedCoupon(CouponID);
 			console.log("Coupon out of date");
 		}
@@ -53,24 +55,33 @@ module.exports = class Handlers{
 	}
 
 }
-
-function GetUserCoupons(id,res, db){
-  let resp = JSON.parse('{}')
-  db.all(`SELECT * FROM UserCoupons WHERE UserID = ${id}`,function(err,row){
-    if(err){console.log(err)}
-    else{
-      db.each(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID =${id}`,function(err,row){
-        if(err){console.log(err)}
-        else{
-let coupons = [];
-      rows.array.forEach((row) => {
-       coupons += row.Coupons;
-      });
-          res.status(200).json({"UserID": id, "Coupons": coupons, "Amount": row.Amount, "Used": row.Used })
-        }
-      });
-    }
-  });
+async function ExpirationDateAwait(CouponID, db){
+	return await getExpirationDate(CouponID, db);
+}
+function GetUserCoupons(id,res,db){
+	console.log(id)
+	let resp = JSON.parse('{}')
+	db.all(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID = ${id}`,function(err,rows){
+		if(err){
+			console.log(err);
+			res.status(400)
+			}
+		else{
+			console.log(rows)
+			if (rows.length > 0){
+				let coupons = [];
+				let counter = 0
+				rows.forEach((row) => {
+					console.log(row.Coupons)
+					coupons[counter] = ({"Coupon": row.Coupons, "Amount": row.Amount, "Used": row.Used});
+					counter++;
+				});
+				res.status(200).json({"UserID": id,"Coupons": coupons})
+			}else{
+				res.status(404).end();
+			}
+		}
+	});
 }
 
 function GetCoupon (CouponID,res,db){
@@ -102,7 +113,7 @@ function makeDate2 (y,m,d){
   return datenow;
 }
 
-function MakeCoupon(req, res, db){
+function MakeCoupon(req, res, db, resTest){
 	let json = req.body
 	let Type = parseInt(json.Type,10);
 	let Value = parseInt(json.Value,10);
@@ -111,47 +122,77 @@ function MakeCoupon(req, res, db){
 		ExpirationDate = json.ExpirationDate;
 	}
 	console.log(ExpirationDate + " " + Type + " " + Value)
-	db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value})`, function(err,row){
-		if(err){
-			console.log(err)
-			res.status(400)  
+	return new Promise((resolve, reject) =>{
+		db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value})`, function(err,row){
+			if(err){
+				console.log(err)
+				if (resTest){
+					res.status(400)
+					resolve(0)
+				}
+			}
+			else {
+				console.log(`A row has been inserted with CouponID: ${this.lastID}`);
+				if(resTest){
+					res.status(200).json({"CouponID": this.lastID});
+				}
+				resolve(this.lastID)
+			}
+		});
+	});
+}
+
+function add2User(json, res, db, resTest){
+  let resp = JSON.parse('{}')
+  let UserID = parseInt(json.UserID,10);
+  let CouponID = parseInt(json.CouponID,10);
+  let Amount = 1
+  let Used = 0
+  if(json.Amount === undefined && json.Used === undefined){
+  }else if(json.Amount === undefined){
+	resp.message = "Write Amount"
+	res.status(400).json(resp);
+	return;
+  }else if(json.Used === undefined){
+	  resp.message = "Write Used"
+	res.status(400).json(resp);
+	return;
+  }else {
+	Amount = parseInt(json.Amount,10);
+	Used = parseInt(json.Used,10);
+  }
+	db.run(`INSERT INTO UserCoupons(UserID, Coupons, Amount, Used) VALUES (${UserID}, ${CouponID}, ${Amount}, ${Used})`, function(err,row){
+		if (err){console.log(err)
+			if (err.errno === 19){
+				//patch
+			}
+			if (resTest){
+				resp.message = "something went wrong"
+				resp.description = err.message
+				res.status(400).json(resp)
+			}
 		}
 		else {
-			console.log(`A row has been inserted with CouponID: ${this.lastID}`);
-			res.status(200).json({"CouponID": this.lastID});
+			if (resTest){
+				res.status(200).end()
+			}
 		}
-		});
-	}
-
-function add2User(req,res, db){
-  let json = req.body
-  let resp = json.parse('{}')
-  let UserID = parseInt(json.Type,10);
-  let CouponID = parseInt(json.CouponID,10);
-  if(![Amount].includes(page) && ![Used].includes(page) ){
-    let Amount = 1;
-    let Used = 0;
-  }
-  else {
-  let Amount = parseInt(json.Amount,10);
-  let Used = parseInt(json.Used,10);
-  }
-
-db.run(`INSERT INTO UserCoupons (Coupons, Amount, Used) VALUES (${CouponID}, ${Amount}, ${Used}) WHERE UserID = ${UserID})`, function(err,row){
-  if (err){console.log(err)
-  resp.message = "something went wrong"
-res.status(400).json(resp);}
-  else {
-  
-    res.status(200).json({"UserID": this.UserID,"CouponID": this.CouponID, "Amount": this.Amount, "Used": this.Used })
-  }
-});
+	});
 }
 
 
 
-function addCoupon(req, res, db){
-  
+async function addCoupon(req, res, db){
+
+
+
+	json = req.body
+	json.CouponID = await MakeCoupon(req, res, db, false);
+	await add2User(json, res, db, false);
+	
+	res.status(200).end()
+}
+ /*
 var datenow = makeDate;
 let json = req.body;
 	let UserID = parseInt(json.UserID, 10);
@@ -174,7 +215,7 @@ let json = req.body;
       res.status(200).json({"UserID": this.UserID,"CouponID": this.CouponID, "Amount": this.Amount, "Used": this.Used });
     }
   });
-}
+} */
 
 // checks expirationdate
 // skrives om?
@@ -194,34 +235,45 @@ function viability (date2check){
 //gets expiration date from couponID
 function getExpirationDate(CouponID, db){
   db.get(`SELECT ExpirationDate FROM Coupon WHERE CouponID = ${CouponID}`, function(err,row){
-    if(err){console.log(err);}
+    if(err){console.log(err); return}
     else {
-     let checkdate = this.ExpirationDate;
-    }
-    return checkdate;
-});}
+		let checkdate = row.ExpirationDate;
+		console.log(row)
+		return checkdate;
+	 }
+});
+}
 
 
 //when a coupon is used, update Used
-function UsedCoupon (UserID, CouponID, db){
-  var uses = 0;
-  var Amount = 1;
-  db.get(`SELECT UserCoupons(Used, Amount) WHERE UserID = ${UserID}, Coupons = ${CouponID}`,function(err,row){
-    if(err){console.log(err)}
-    else {
-      uses = this.Used;
-      uses += 1;
-      Amount = this.Amount;
-    }
-  } );
-  db.run(`UPDATE INTO UserCoupons(Used) WHERE UserID = ${UserID} VALUES(uses)`,function(err,row){
-    if(err){console.log(err)}
-    else {
-
-	console.log("Uses: " + uses + " of: " + Amount);
-    }
-  });
+function UsedCoupon (UserID, CouponID,res, db){
+	let resp = JSON.parse('{}')
+	db.get(`SELECT Used, Amount FROM UserCoupons WHERE UserID = ${UserID} AND Coupons = ${CouponID}`,function(err,row){
+		if(err){
+			console.log(err)
+			resp.message = "something went wrong"
+			resp.description = err.message
+			res.status(400).json(resp)
+		}
+		else {
+			uses = row.Used;
+			uses += 1;
+			Amount = row.Amount;
+			db.run(`UPDATE UserCoupons SET Used = ${uses} WHERE UserID = ${UserID}`,function(err){
+				if(err){
+					console.log(err)
+					resp.message = "something went wrong"
+					resp.description = err.message
+					res.status(400).json(resp)
+				}else {
+					console.log("Uses: " + uses + " of: " + Amount);
+					res.status(200).end()
+				}
+			});
+		}
+	});
 }
+
 
  
 

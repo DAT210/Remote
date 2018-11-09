@@ -92,7 +92,7 @@
 
 			function updateCoupons(){
 				let id = document.getElementById("user").value;
-				let userCoupons = Get("reward/user-coupons/:id");
+				let userCoupons = Get("reward-pages/:id?page=Coupon");
 				//coupons for loop?
 				let coupons = [integer];
 				 coupons = parseInt(userCoupons.coupons, 10);
@@ -121,13 +121,12 @@
 
 
 
-			function Get(theUrl);
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
-}
+			function Get(theUrl){
+				var xmlHttp = new XMLHttpRequest();
+				xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+				xmlHttp.send( null );
+				return xmlHttp.responseText;
+			}
 
 		</script>
 			<label for="user">User:</label>

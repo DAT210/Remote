@@ -18,7 +18,7 @@ require('dotenv').config({
 
 // List all envVariables that are going to be tested
 let requiredEnv = [
-  'PORT','DATABASE_MEALDEALS_NAME'
+  'PORT','DATABASE_NAME'
 ];
 
 var envVarTests = true;
@@ -32,7 +32,7 @@ if (unsetEnv.length > 0) {
 }
 
 // tests that the database file is listed as .db
-let DbTest = process.env.DATABASE_MEALDEALS_NAME;
+let DbTest = process.env.DATABASE_NAME;
 if(!DbTest.endsWith(".db")){
 	console.log("wrong database link");
 	return;
@@ -46,7 +46,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 //coupon
 
-let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_MEALDEALS_NAME}`));
+let db = new sqlite3.Database(path.resolve(__dirname, `../db/${process.env.DATABASE_NAME}`));
 
 db.run('CREATE TABLE IF NOT EXISTS TokensTable(UserID INTEGER PRIMARY KEY, Tokens INTEGER, NextPlayDate TEXT)',function(err){
 	if(err){
@@ -64,7 +64,7 @@ db.run('CREATE TABLE IF NOT EXISTS Courses(DealID INTEGER, CourseID INTEGER, Num
 		console.log(err.message);
 	}
 });
-db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER PRIMARY KEY, Coupons INTEGER, FOREIGN KEY (Coupons) REFERENCES Coupon (Coupons))', function(err) {
+db.run('CREATE TABLE IF NOT EXISTS UserCoupons(UserID INTEGER, Coupons INTEGER, Amount INTEGER, Used INTEGER, FOREIGN KEY (Coupons) REFERENCES Coupon (Coupons), PRIMARY KEY(UserID, Coupons))', function(err) {
 	if (err) {
     console.log(err.message);
   }
@@ -100,11 +100,8 @@ app.post('/user_coupons', (req,res) => coupon.post_user_coupons(req,res));
 app.post('/user_coupon', (req,res) => coupon.post_user_coupon(req,res));
 app.post('/coupons/', (req,res) => coupon.post_coupons(req,res));
 app.patch('/use_coupon/', (req, res) => coupon.patch_use_coupon(req,res)); 
-app.get("/user_coupons/:userID", (req,res) => coupon.get_user_coupons(req,res));
-app.get("/coupons/:couponID", (req,res) => coupon.get_coupons(req,res));
 
-
-setTimeout(clearMealDeals,10000)
+setTimeout(clearMealDeals,100000)
 
 function clearMealDeals(){
 	console.log("Clean");
@@ -290,6 +287,9 @@ function insertCourses(res,json){
 	}
 }
 
+app.get('/rewardsss', function(req,res){
+	res.render('Rewards.html');
+})
 
 app.get('/rewards', function(req,res){
 	let time = new Date();
@@ -423,12 +423,11 @@ app.post('/rewards', function(req, res){
 
 app.get('/reward-pages/:id', function(req, res){
 	let page = req.query.page;
-	if (!['tokens','courses','mealDeal', 'nextPlayDate'].includes(page)){
+	if (!['tokens','courses','mealDeal', 'nextPlayDate', 'coupons', 'coupon'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return;
 	}
-	
 	let id = parseInt(req.params.id, 10);
 	if (page === 'tokens'){
 		getTokens(res,id);
@@ -438,6 +437,10 @@ app.get('/reward-pages/:id', function(req, res){
 		mealDealConn(res);
 	}else if(page === 'nextPlayDate'){
 		getNextPlayDate(res,id);
+	}else if(page === 'coupons'){
+		coupon.get_user_coupons(res,id)
+	}else if(page === 'coupon'){
+		 coupon.get_coupons(res,id)
 	}
 });
 
