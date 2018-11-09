@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+=======
 
+>>>>>>> dev
 # Created by https://www.gitignore.io/api/vim,node,visualstudiocode
 
 ### Node ###
@@ -107,8 +110,14 @@ tags
 # End of https://www.gitignore.io/api/vim,node,visualstudiocode
 
 env/dev.env
+<<<<<<< HEAD
+package-lock.json
+env/prod.env
+env/test.env
+=======
 env/prod.env
 env/test.env
 package-lock.json
 logdir/
 db/dev.db
+>>>>>>> dev

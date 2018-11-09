@@ -1,0 +1,234 @@
+.payment {
+    margin-top: 120px;
+    border-top: 1em solid #222222;
+    width: 100%;
+    height: 80%;
+    background-color: #222222;
+    color: grey;
+    text-align: center;
+}
+
+.preview {
+    margin: 2em auto 0 auto;
+    background-color: #222222;
+    border: 1px solid grey;
+    width: 95%;
+    height: 60%;
+    color: grey;
+}
+
+#paymenttable * {
+    text-align: center;
+}
+
+#paymenttable tr:nth-child(even) {
+    background: #CCC
+}
+
+#paymenttable tr:nth-child(odd) {
+    background: #FFF
+}
+
+#cashpreview td {
+    padding: 10em 1em 0 1em;
+}
+
+#cashpreviewleft {
+    text-align: right;
+}
+
+.cupon-select {
+    min-width: 100px;
+    margin-right: 1em;
+}
+
+table {
+    width: 100%;
+    margin-top: 1em;
+    text-align: left;
+    table-layout: fixed;
+}
+
+.nospace {
+    width: 0px;
+}
+
+.cashpayment {
+    top: 50%;
+}
+
+
+/************************* FOOTER ********************************/
+
+.button {
+    background-color: #222222;
+    color: grey;
+    border: 1px solid grey;
+    text-align: center;
+    width: 95%;
+    padding: 15px 30px;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#main-content-footer-container {
+    width: 95%;
+    margin: auto;
+    margin-top: 1em;
+}
+
+.footer-container {
+    float: left;
+}
+
+.footer-backbtn-container {
+    width: 25%;
+}
+
+.back-btn-container {
+    width: 33%;
+    margin: auto;
+}
+
+#pay-btn-container,
+#cash-container-btn {
+    width: 33%;
+    margin: auto;
+}
+
+
+/*
+PAYMENT
+*/
+
+#main-payment-footer-left {
+    width: 25%;
+}
+
+#main-payment-footer-middle {
+    width: 50%;
+}
+
+#main-payment-footer-right {
+    width: 25%;
+}
+
+#main-container {
+    width: 100%;
+    height: 300px;
+    background-color: black;
+    margin-top: 200px;
+}
+
+#container {
+    width: 40%;
+    height: 100%;
+    margin: auto;
+    text-align: center;
+}
+
+#main-payment-footer-modifier {
+    margin: auto;
+    line-height: 30px;
+    font-size: 20px;
+}
+
+label {
+    display: inline-block;
+    width: 30%;
+    text-align: left;
+}
+
+output,
+input,
+select {
+    display: inline-block;
+    width: 30%;
+    text-align: left;
+}
+
+
+/*
+CHOOSEPAY
+*/
+
+.payment_option_container {
+    float: left;
+    width: 33%;
+}
+
+#choose-payment-footer-left {
+    width: 25%;
+}
+
+#choose-payment-footer-right {
+    width: 75%;
+}
+
+
+/*
+CASHPAY
+*/
+
+#cash-payment-footer-left {
+    width: 25%;
+}
+
+#cash-payment-footer-right {
+    width: 25%;
+    left: 50%;
+    position: relative;
+}
+
+
+/*https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_modal*/
+
+
+/* The Modal (background) */
+
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 50%;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+}
+
+
+/* Modal Content */
+
+.modal-content {
+    background-color: #fefefe;
+    border: 1px solid #888;
+    margin: auto;
+    padding: 20px;
+    width: auto;
+    text-align: center;
+}
+
+
+/* The Close Button */
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
