@@ -1,25 +1,26 @@
 {% extends "template.html" %} {% block title %} Reward {% endblock %} {% block content %}
 
 <div class="Reward">
-    Preview MealDeals
+
     <div class="preview">
+        Preview MealDeals
         <table id="MealDeals">
             <tr>
-                <th colspan="5">DealID</th>
+                <th colspan="3">DealID</th>
                 <th colspan="1">Price</th>
                 <th colspan="1">Name</th>
                 <th colspan="1">StartDate</th>
                 <th colspan="1">EndDate</th>
-                <th colspan="1">Courses</th>
+                <th colspan="3">Courses</th>
             </tr>
             {% for d in MealDeals %}
             <tr>
-                <td colspan="5">{{ d.dealID }}</td>
+                <td colspan="3">{{ d.dealID }}</td>
                 <td colspan="1">{{ d.price }}</td>
                 <td colspan="1">{{ d.name }}</td>
                 <td colspan="1">{{ d.startDate}}</td>
                 <td colspan="1">{{ d.endDate}}</td>
-                <td colspan="1">{{ d.courses}}</td>
+                <td colspan="3">{{ d.courses}}</td>
             </tr>
 
             {% endfor %}
@@ -27,19 +28,20 @@
         </table>
     </div>
 
-    <div class="Reward">
-    Preview Coupon
+    <div class="Reward2">
+    
     <div class="preview2">
-        <table id="Coupon">
+    Preview Coupons
+        <table id="Coupons">
             <tr>
-                <th colspan="5">couponID</th>
+                <th colspan="3">CouponID</th>
                 <th colspan="1">Expiration Date</th>
                 <th colspan="1">Type</th>
                 <th colspan="1">Value</th>
             </tr>
-            {% for e in Coupon %}
+            {% for e in Coupons %}
             <tr>
-                <td colspan="5">{{ e.couponID }}</td>
+                <td colspan="3">{{ e.couponID }}</td>
                 <td colspan="1">{{ e.expirationDate }}</td>
                 <td colspan="1">{{ e.type }}</td>
                 <td colspan="1">{{ e.value}}</td>
