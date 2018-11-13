@@ -125,11 +125,11 @@ function makeDate2 (y,m,d){
 
 function MakeCoupon(req, res, db, resTest){
 	let json = req.body
-	let Type = parseInt(json.Type,10);
-	let Value = parseInt(json.Value,10);
+	let Type = parseInt(json.type,10);
+	let Value = parseInt(json.value,10);
 	let ExpirationDate = makeDate();
-	if(!(json.ExpirationDate === undefined)){
-		ExpirationDate = json.ExpirationDate;
+	if(!(json.expirationDate === undefined)){
+		ExpirationDate = json.expirationDate;
 	}
 	console.log(ExpirationDate + " " + Type + " " + Value)
 	return new Promise((resolve, reject) =>{

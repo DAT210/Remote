@@ -409,7 +409,7 @@ function getCourses(id){
 	Code 404 means that the course does not exist
 */
 
-app.post('/rewards', function(req, res){
+app.post('/mealDeal', function(req, res){
 	let page = req.body.page;
 	if (!['mealDeal'].includes(page)){
 		console.log('Not a valid page');
@@ -437,7 +437,7 @@ app.get('/reward-pages/:id', function(req, res){
 		mealDealConn(res);
 	}else if(page === 'nextPlayDate'){
 		getNextPlayDate(res,id);
-	}else if(page === 'coupons'){
+	}else if(page === 'userCoupons'){
 		coupon.get_user_coupons(res,id)
 	}else if(page === 'coupon'){
 		 coupon.get_coupons(res,id)

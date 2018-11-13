@@ -10,7 +10,7 @@
 			<button class="button" type="button" name="insert-mealDeal" onclick="addDeal()">add-mealDeal</button>
 	
 	<script>
-	datenow = new date().getTime();
+	datenow = new Date().getTime();
 
 	</script>
 	</div>
@@ -53,7 +53,7 @@
 			let items = parseInt(document.getElementById("items").value, 10);
 
 			const http = new XMLHttpRequest();
-			const url = '/reward-pages/id?method=post';
+			const url = '/mealDeal';
 			http.open('POST', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
@@ -63,12 +63,12 @@
 			json.price = price;
 			json.startDate = startDate;
 			json.endDate = endDate;
-			json.courses = courses;
+			json.courses = [{1,2}{2,2}]courses;
 
 			http.send(JSON.stringify(json));
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					window.location.href = '/reward-pages/id?method=post';
+					window.location.href = '/mealDeal';
 				}
 			}
 		}
@@ -81,7 +81,7 @@
 //redundant?
 			function updateCouponView(){
 				let id = document.getElementById("coupon").id;
-				let json = Get("reward/coupon/:{{id}}")
+				let json = Get("reward-pages/:{{id}}?page=coupon")
 				let couponID = parseInt(json.couponID, 10); 
 				let expirationDate = parse(json.expirationDate, 10);
 				let couponType = parseInt(json.type, 10);
@@ -100,7 +100,7 @@
 			function updateCoupons(){
 				let id = document.getElementById("user").value;
 				var xmlHttp = new XMLHttpRequest();
-				xmlHttp.open( "GET", "reward-pages/{{id}}?page=coupons", false ); // false for synchronous request
+				xmlHttp.open( "GET", "reward-pages/:{{id}}?page=userCoupons", false ); // false for synchronous request
 				xmlHttp.send( null );
 				let userCoupons = xmlHttp.responseText;
 				//coupons for loop?
@@ -178,7 +178,7 @@
 			let expirationDate = parseInt(document.getElementById("CexpirationDate").value, 10);
 
 			const http = new XMLHttpRequest();
-			const url = 'reward-pages/page=coupon';
+			const url = '/coupons/';
 			http.open('POST', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
@@ -191,8 +191,8 @@
 
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					window.location.href = '/reward-pages/page=coupon'
-					let nyeste = xmlHttp.responseText;
+					window.location.href = '/coupons/'
+					let nyeste = http.responseText;
 					newcoupon.value = nyeste.couponID;
 				}
 			}
@@ -218,8 +218,8 @@
 			let couponID = parseInt(document.getElementById("newCoupon").value, 10);
 
 			const http = new XMLHttpRequest();
-			const url = '/reward-pages/page=user-coupons';
-			http.open('PACTH', url);
+			const url = '/user-coupons';
+			http.open('PATCH', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
 			let json = JSON.parse('{}');
@@ -230,7 +230,7 @@
 
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					window.location.href = '/reward-pages/page=user-coupons'
+					window.location.href = '/user-coupons'
 					
 				}
 			}
