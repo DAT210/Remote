@@ -423,7 +423,7 @@ app.post('/mealDeal', function(req, res){
 
 app.get('/reward-pages/:id', function(req, res){
 	let page = req.query.page;
-	if (!['tokens','courses','mealDeal', 'nextPlayDate', 'coupons', 'coupon'].includes(page)){
+	if (!['tokens','courses','mealDeal', 'nextPlayDate', 'userCoupons', 'coupon'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return;

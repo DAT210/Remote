@@ -76,16 +76,15 @@ function GetUserCoupons(id,res,db){
 			res.status(400).end(err)
 			}
 		else{
-			console.log(rows)
 			if (rows.length > 0){
 				let coupons = [];
 				let counter = 0
 				rows.forEach((row) => {
-					console.log(row.Coupons)
-					coupons[counter] = ({"Coupon": row.Coupons, "Amount": row.Amount, "Used": row.Used});
+					coupons[counter] = ({"coupon": row.Coupons, "amount": row.Amount, "used": row.Used});
 					counter++;
 				});
-				res.status(200).json({"UserID": id,"Coupons": coupons})
+				console.log(coupons)
+				res.status(200).json({"userID": id,"coupons": coupons})
 			}else{
 				res.status(404).end();
 			}
@@ -99,7 +98,7 @@ function GetCoupon (CouponID,res,db){
 			res.status(400).end(err);}
       else{
 //console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
-res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Used": row.Value })
+		res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Used": row.Value })
       }
     });
   
@@ -153,9 +152,10 @@ function MakeCoupon(req, res, db, resTest){
 }
 
 function add2User(json, res, db, resTest){
+	console.log("hallo")
   let resp = JSON.parse('{}')
-  let UserID = parseInt(json.UserID,10);
-  let CouponID = parseInt(json.CouponID,10);
+  let UserID = parseInt(json.userID,10);
+  let CouponID = parseInt(json.couponID,10);
   let Amount = 1
   let Used = 0
   if(json.Amount === undefined && json.Used === undefined){

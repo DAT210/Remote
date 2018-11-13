@@ -80,8 +80,8 @@
 			<script>
 //redundant?
 			function updateCouponView(){
-				let id = document.getElementById("coupon").id;
-				let json = Get("reward-pages/:{{id}}?page=coupon")
+				let id = document.getElementById("selectCoupon").value;
+				let json = Get(`reward-pages/${id}?page=coupon`)
 				let couponID = parseInt(json.couponID, 10); 
 				let expirationDate = parse(json.expirationDate, 10);
 				let couponType = parseInt(json.type, 10);
@@ -99,16 +99,22 @@
 
 			function updateCoupons(){
 				let id = document.getElementById("user").value;
-				var xmlHttp = new XMLHttpRequest();
-				xmlHttp.open( "GET", "reward-pages/:{{id}}?page=userCoupons", false ); // false for synchronous request
-				xmlHttp.send( null );
-				let userCoupons = xmlHttp.responseText;
-				//coupons for loop?
-				let coupons = [integer];
-				 coupons = parseInt(userCoupons.coupons, 10);
-
-				 let selectCoupon = document.getElementById("selectCoupon");
-				 selectCoupon.value = coupons(1);
+				var http = new XMLHttpRequest();
+				http.open( "GET", `reward-pages/${id}?page=userCoupons`, true ); // false for synchronous request
+				http.onreadystatechange = function () {
+					if (this.readyState == 4 && this.status == 200) {
+						let selectCoupon = document.getElementById("selectCoupon");
+						let userCoupons = JSON.parse(this.responseText);
+						coupons = userCoupons.coupons
+						document.getElementById("newCoupon").value = coupons[0].coupon
+						for (counter = 0; counter < coupons.length; counter++){
+							var option = document.createElement("option");
+							option.text = coupons[counter].coupon
+							selectCoupon.appendChild(option)
+						}
+					}
+				}
+				http.send();
 			}
 
 			function updateMealDeals(){
@@ -191,9 +197,8 @@
 
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					window.location.href = '/coupons/'
-					let nyeste = http.responseText;
-					newcoupon.value = nyeste.couponID;
+					let nyeste = JSON.parse(this.responseText);
+					document.getElementById("newCoupon").value =  nyeste.CouponID;
 				}
 			}
 		}
@@ -218,8 +223,8 @@
 			let couponID = parseInt(document.getElementById("newCoupon").value, 10);
 
 			const http = new XMLHttpRequest();
-			const url = '/user-coupons';
-			http.open('PATCH', url);
+			const url = '/user_coupons';
+			http.open('POST', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
 			let json = JSON.parse('{}');
@@ -230,8 +235,6 @@
 
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					window.location.href = '/user-coupons'
-					
 				}
 			}
 		}
