@@ -2,7 +2,7 @@ module.exports = class Handlers{
 	constructor(db){
 		this.db = db;
 	}
-	
+
 
 	//makes and adds a coupon to user 
 	post_user_coupon(req,res){
@@ -19,14 +19,22 @@ module.exports = class Handlers{
 	post_coupons(req,res){
 		MakeCoupon(req,res,this.db, true);
 	}
+
 	patch_use_coupon(req,res){
 		let json = req.body;
 
-		//fix
+		//TODO: error respons
 		if(json.UserID === undefined || json.CouponID === undefined){
-			console.log("trenger UserID og CouponID");
-			res.status(400).end()
-		}else{
+			resp.message = ("trenger UserID og CouponID");
+			res.status(400).end(resp)
+		} 
+		else if (json.UserID === undefined){resp.message = ("trenger UserID");
+	res.status(400).end(resp);}
+
+	else if (json.CouponID ===undefined){resp.message = ("trenger CouponID");
+	res.status(400).end(resp);}
+
+		else{
 			let UserID = parseInt(json.UserID,10);
 			let CouponID = parseInt(json.CouponID, 10);
 			UsedCoupon(UserID, CouponID, res, this.db);
@@ -43,11 +51,12 @@ module.exports = class Handlers{
 	get_coupons(res,id){
 		let CouponID = id;
 		let checkdate = ExpirationDateAwait(CouponID,this.db);
-		if(viability(checkdate)== false){
+		if(viability(checkdate)=== false){
 			//sets used +1 or used=amount
 			//fix
 			UsedCoupon(CouponID);
-			console.log("Coupon out of date");
+			resp.message = ("Coupon out of date");
+			res.status(400).end(resp);
 		}
 		else{
 			GetCoupon(CouponID,res,this.db);
@@ -64,7 +73,7 @@ function GetUserCoupons(id,res,db){
 	db.all(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID = ${id}`,function(err,rows){
 		if(err){
 			console.log(err);
-			res.status(400)
+			res.status(400).end(err)
 			}
 		else{
 			console.log(rows)
@@ -86,7 +95,8 @@ function GetUserCoupons(id,res,db){
 
 function GetCoupon (CouponID,res,db){
     db.get(`SELECT CouponID,ExpirationDate,Type,Value FROM Coupon WHERE CouponID = ${CouponID}`, function (err,row){
-      if(err){console.log(err)}
+			if(err){console.log(err)
+			res.status(400).end(err);}
       else{
 //console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
 res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Used": row.Value })
@@ -164,7 +174,13 @@ function add2User(json, res, db, resTest){
 	db.run(`INSERT INTO UserCoupons(UserID, Coupons, Amount, Used) VALUES (${UserID}, ${CouponID}, ${Amount}, ${Used})`, function(err,row){
 		if (err){console.log(err)
 			if (err.errno === 19){
-				//patch
+				db.run(`UPDATE UserCoupons(UserID, Coupons, Amount, Used) VALUES (${UserID}, ${CouponID}, ${Amount}, ${Used})`, function(err,row){
+					if(err){console.log(err)
+						resp.message = err;
+					res.status(400).end(resp);
+				}
+				else {res.status(200).end();}
+				});
 			}
 			if (resTest){
 				resp.message = "something went wrong"

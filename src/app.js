@@ -14,7 +14,7 @@ if (envfile === undefined) {
 require('dotenv').config({
 	path: path.resolve(__dirname, `../env/${envfile}.env`)
 });
-
+console.log(envfile);
 
 // List all envVariables that are going to be tested
 let requiredEnv = [
@@ -31,7 +31,7 @@ if (unsetEnv.length > 0) {
   return;
 }
 
-// tests that the database file is listed as .db
+//tests that the database file is listed as .db
 let DbTest = process.env.DATABASE_NAME;
 if(!DbTest.endsWith(".db")){
 	console.log("wrong database link");
@@ -86,7 +86,7 @@ nunjucks.configure(__dirname, {
 	express: app
 });
 
-app.use(express.static(__dirname, + '../couponDB/static'));
+app.use(express.static(__dirname, + '../src/static'));
 
 app.use(bodyParser.json());
 
@@ -581,4 +581,3 @@ try{
 }catch(err){
 	console.log("Server can not start, check ENV variable port, it should be an INT between 0 =< port > 65536");
 }
-	
