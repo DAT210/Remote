@@ -116,25 +116,28 @@
 //redundant?
 			function updateCouponView(){
 				let id = document.getElementById("selectCoupon").value;
-				let xmlHttp = Get(`reward-pages/${id}?page=coupon`)
+				Get(`reward-pages/${id}?page=coupon`).then((xmlHttp) => {
 				let json = JSON.parse(xmlHttp);
 				// let json = xmlHttp;
 				let couponID = parseInt(json.CouponID, 10); 
 				let expirationDate = json.ExpirationDate;
 				let couponType = parseInt(json.Type, 10);
 				let couponValue = parseInt(json.Value, 10);
-				
+				/*
 				var coupon = document.createElement("coupon");
 				coupon.couponID = couponID;
 				coupon.expirationDate = expirationDate;
 				coupon.type = couponType;
 				coupon.value = couponValue;
+				*/
+				let coupon = document.createElement("p");
+				coupon.innerHTML = couponID + " " + expirationDate + " " + (couponType == 0 ? "%" : "kr") + " " + couponValue;
 				document.getElementById("Coupons").appendChild(coupon);
 
 				var myWindow = window.open("", "MsgWindow", "width=200,height=100");
 				myWindow.document.write(couponID);
-			
-		}
+				});
+			}
 
 			function updateCoupons(){
 				let id = document.getElementById("user").value;
@@ -183,16 +186,17 @@
 
 
 			function Get(theUrl){
-				var xmlHttp = new XMLHttpRequest();
-				xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
-				xmlHttp.send();
-				/*xmlHttp.onreadystatechange = function () {
-					if (this.readyState == 4 && this.status == 200) {
-						return this.responseText;
-					}*/
-				return xmlHttp.responseText;
+				return new Promise(function(resolve) {
+					var xmlHttp = new XMLHttpRequest();
+					xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+					xmlHttp.send();
+					xmlHttp.onreadystatechange = function () {
+						if (this.readyState == 4 && this.status == 200) {
+							resolve(this.responseText);
+						}
+					}
+				});
 			}
-			//}
 
 		</script>
 			<label for="user">User:</label>
