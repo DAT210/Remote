@@ -15,32 +15,33 @@
 
    function addDeal() {
 			let dealID = parseInt(document.getElementById("dealID").value, 10);
-			let name = parseInt(document.getElementById("name").value, 10);
+			let name = document.getElementById("name").value;
 			let price = parseInt(document.getElementById("price").value, 10);
-			let startDate = parseInt(document.getElementById("startDate").value, 10);
-			let endDate = parseInt(document.getElementById("endDate").value, 10);
-			let courses = parseInt(document.getElementById("courses").value, 10);
-			let items = parseInt(document.getElementById("items").value, 10);
+			let startDate = document.getElementById("startDate").value;
+			let endDate = document.getElementById("endDate").value;
+			let courses = document.getElementById("courses").value;
+			let items = document.getElementById("items").value
 
 			const http = new XMLHttpRequest();
-			const url = '/mealDeal';
+			const url = `/mealDeal/?page=mealDeal`;
 			http.open('POST', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 		
 			var coursesArray = courses.split(" ");
-			var itemsArray = items.split(" ", coursesArray.length);
+			var itemsArray = items.split(" ");
 			let numberOfCourses = coursesArray.length;
-
+			console.log(numberOfCourses)
+			console.log(itemsArray.length)
 			let json = JSON.parse('{}');
 			json.dealID = dealID;
-			json.nameID = nameID;
+			json.name = name;
 			json.price = price;
 			json.startDate = startDate;
 			json.endDate = endDate;
-			json.numberOfCourses = numberOfCourses;
+			json.courses = []
 			
-            for(int i = 0 ; i < numberOfCourses ; i++) {
-				json.courses[i] = {course: coursesArr[1], numverOfItems: itemsArray[i]}
+            for(var i = 0 ; i < numberOfCourses ; i++) {
+				json.courses[i] = {"course": coursesArray[1], "numberOfItems": itemsArray[i]}
               }
 
 			http.send(JSON.stringify(json));
