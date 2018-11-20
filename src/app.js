@@ -264,7 +264,7 @@ function insertCourses(res,json){
 	for(let counter = 0; counter < courses.length; counter++){
 		courseid = parseInt(courses[counter].courseID);
 		numberofitems = parseInt(courses[counter].numberOfItems);
-		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseid}, ${numberofitems})`, function(err) {
+		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseID}, ${numberofitems})`, function(err) {
 			if (err) {
 				let resp = JSON.parse('{}');
 				console.log(err.message);
@@ -411,14 +411,14 @@ function getCourses(id){
 
 app.post('/mealDeal/', function(req, res){
 	let page = req.body.page;
-	if (!['mealDeal'].includes(page)){
+	/* if (!['mealDeal'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return;
-	}
-	if (page === 'mealDeal'){
+		} */
+	//if (page === 'mealDeal'){
 		postDeal(req,res);
-	}
+//	}
 });
 
 app.get('/reward-pages/:id', function(req, res){

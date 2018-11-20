@@ -1,7 +1,7 @@
 <div id="main-content-footer-container">
 	<div class="footer-container" id="main-reward-footer-left">
 		<div class="back-btn-container">
-			<button class="button" type="button" name="back-button" onclick="navigateBackToOrderPage()">BACK</button>
+			<button class="button" type="button" name="back-button" onclick="navigateBackToOrderPage()">Back</button>
 		</div>
 	</div>
 
@@ -23,15 +23,15 @@
 			let items = document.getElementById("items").value
 
 			const http = new XMLHttpRequest();
-			const url = `/mealDeal/?page=mealDeal`;
+			const url = `/mealDeal/`;
 			http.open('POST', url);
 			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 		
 			var coursesArray = courses.split(" ");
 			var itemsArray = items.split(" ");
 			let numberOfCourses = coursesArray.length;
-			console.log(numberOfCourses)
-			console.log(itemsArray.length)
+			//console.log(numberOfCourses)
+			//console.log(itemsArray.length)
 			let json = JSON.parse('{}');
 			json.dealID = dealID;
 			json.name = name;
@@ -40,9 +40,12 @@
 			json.endDate = endDate;
 			json.courses = []
 			
+
             for(var i = 0 ; i < numberOfCourses ; i++) {
-				json.courses[i] = {"course": coursesArray[1], "numberOfItems": itemsArray[i]}
+				json.courses[i] = {"dealID": dealID, "courseID": coursesArray[i], "numberOfItems": itemsArray[i]}
               }
+
+			console.log(json);
 
 			http.send(JSON.stringify(json));
 			http.onreadystatechange = function () {
@@ -56,12 +59,12 @@
 		}
 
 		function updateDeals(){
-				let id = document.getElementById("user").value;
+				//let id = document.getElementById("user").value;
 				var http = new XMLHttpRequest();
 				http.open( "GET", `reward-pages/rewards`, true ); // false for synchronous request
 				http.onreadystatechange = function () {
 					if (this.readyState == 4 && this.status == 200) {
-						let selectDeal = document.getElementById("selectCoupon");
+						let selectDeal = document.getElementById("selectDeal");
 						let deals = JSON.parse(this.responseText);
 
 						for (counter = 0; counter < deals.length; counter++){
@@ -119,18 +122,12 @@
 				let id = document.getElementById("selectCoupon").value;
 				Get(`reward-pages/${id}?page=coupon`).then((xmlHttp) => {
 				let json = JSON.parse(xmlHttp);
-				// let json = xmlHttp;
+				
 				let couponID = parseInt(json.CouponID, 10); 
 				let expirationDate = json.ExpirationDate;
 				let couponType = parseInt(json.Type, 10);
 				let couponValue = parseInt(json.Value, 10);
-				/*
-				var coupon = document.createElement("coupon");
-				coupon.couponID = couponID;
-				coupon.expirationDate = expirationDate;
-				coupon.type = couponType;
-				coupon.value = couponValue;
-				*/
+			
 				let coupon = document.createElement("p");
 				coupon.innerHTML = couponID + " " + expirationDate + " " + (couponType == 0 ? "%" : "kr") + " " + couponValue;
 				document.getElementById("Coupons").appendChild(coupon);
@@ -180,6 +177,8 @@
 						mealdeal.courses[{courses.CourseID}||{courses.numberOfItems}] = courses[i];
 				 }
 				 */
+				 let mealdeal = document.createElement("p");
+				 coupon.innerHTML = dealID + " " + startDate + " " +endDate + " " + courses;
 				 document.getElementById("MealDeals").appendChild(mealdeal)
 				 
 			}
@@ -228,7 +227,7 @@
 
 	<div class="footer-container" id="main-reward-footer-right">
 		<div id="add-btn-container">
-			<button class="button" type="button" name="add-button" onclick=" addCoupon();"> addCoupon </button>
+			<button class="button" type="button" name="add-button" onclick=" addCoupon();">addCoupon </button>
 		</div>
 	
 
