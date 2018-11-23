@@ -12,7 +12,9 @@
 
 	<script>
 	datenow = new Date().getTime();
-
+	window.onload = function(){
+		updateDeals();
+	}
    function addDeal() {
 			let dealID = parseInt(document.getElementById("dealID").value, 10);
 			let name = document.getElementById("name").value;
@@ -30,8 +32,6 @@
 			var coursesArray = courses.split(" ");
 			var itemsArray = items.split(" ");
 			let numberOfCourses = coursesArray.length;
-			//console.log(numberOfCourses)
-			//console.log(itemsArray.length)
 			let json = JSON.parse('{}');
 			json.dealID = dealID;
 			json.name = name;
@@ -45,32 +45,31 @@
 				json.courses[i] = {"dealID": dealID, "courseID": coursesArray[i], "numberOfItems": itemsArray[i]}
               }
 
-			console.log(json);
 
 			http.send(JSON.stringify(json));
 			http.onreadystatechange = function () {
 				if (this.readyState == 4 && this.status == 200) {
-					//window.location.href = '/mealDeal';
-				var myWindow = window.open("", "MsgWindow", "width=200,height=100");
-				myWindow.document.write("deal: " +dealID+ " " + nameID + "pris: " + price + "  "+ json.courses );
-
+					updateDeals()
 				}
 			}
 		}
 
 		function updateDeals(){
-				//let id = document.getElementById("user").value;
+				var myNode = document.getElementById("selectDeal");
+				while(myNode.firstChild){
+					myNode.removeChild(myNode.firstChild);
+				}
 				var http = new XMLHttpRequest();
-				http.open( "GET", `reward-pages/rewards`, true ); // false for synchronous request
+				http.open( "GET", `deals`, true ); // false for synchronous request
 				http.onreadystatechange = function () {
 					if (this.readyState == 4 && this.status == 200) {
 						let selectDeal = document.getElementById("selectDeal");
 						let deals = JSON.parse(this.responseText);
-
+						document.getElementById("selectDeal").value = deals[0].dealID
 						for (counter = 0; counter < deals.length; counter++){
-							var option1 = document.createElement("option1");
-							option1.text = deals[counter].dealID;
-							selectDeal.appendChild(option1);
+							var option = document.createElement("option");
+							option.text = deals[counter].dealID;
+							selectDeal.appendChild(option);
 						}
 					}
 				}
@@ -81,7 +80,7 @@
 	<form id="main-reward-footer-left2mod" onsubmit="return false">
 
 			<label for="selectDeal">Velg mealdeal:</label>
-			<select id="selectDeal" name="selectDeal" onload="" onchange="updateDeals(); ">
+			<select id="selectDeal" name="selectDeal" onload="updateDeals();" onchange="updateMealDeals(); ">
 				<option value="none" selected>No deal</option>
 				</select><br>
 
@@ -129,7 +128,7 @@
 				let couponValue = parseInt(json.Value, 10);
 			
 				let coupon = document.createElement("p");
-				coupon.innerHTML = couponID + " " + expirationDate + " " + (couponType == 0 ? "%" : "kr") + " " + couponValue;
+				coupon.innerHTML = couponID + " 	" + expirationDate + "		" + (couponType == 0 ? "%" : "kr") + " " + couponValue;
 				document.getElementById("Coupons").appendChild(coupon);
 
 				var myWindow = window.open("", "MsgWindow", "width=200,height=100");
@@ -159,28 +158,49 @@
 
 			function updateMealDeals(){
 				let id = document.getElementById("selectDeal").value;
-				let json = Get(`reward-pages/${id}page=mealDeal`);
-				let dealID = parseInt(json.dealID);
-				let price = parseInt(json.price);
-				let name = parse(json.name);
-				let startDate = parse(json.startDate);
-				let endDate = parse(json.endDate);
-				let courses = [{}||{}];
-				 courses = json.courses;
-				var mealdeal = document.createElement("mealdeal")
-				mealdeal.dealID = dealID;
-				mealdeal.price = price;
-				 mealdeal.name = name;
-				 mealdeal.startDate = startDate;
-				 mealdeal.endDate = endDate;
-				/* for(i=0; i<courses.numberOfItems;i++){
-						mealdeal.courses[{courses.CourseID}||{courses.numberOfItems}] = courses[i];
-				 }
-				 */
-				 let mealdeal = document.createElement("p");
-				 coupon.innerHTML = dealID + " " + startDate + " " +endDate + " " + courses;
-				 document.getElementById("MealDeals").appendChild(mealdeal)
-				 
+				Get(`reward-pages/${id}?page=mealDeal`).then((xmlHttp) => {
+				let json = JSON.parse(xmlHttp)
+				let dealID = parseInt(json.dealID, 10);
+				let price = parseInt(json.price, 10);
+				let name = json.name;
+				let startDate = json.startDate;
+				let endDate = json.endDate;
+				let coursesArr = json.courses;
+				let courses = ""
+				for(let i=0; i<coursesArr.length;i++){
+					if (i > 0){
+					courses += " | "
+					}
+					courses += coursesArr[i].courseID + " " + coursesArr[i].numberOfItems		
+				}
+				var tr = document.createElement("tr");
+				td = document.createElement("td");
+				td.colSpan = 3;
+				td.appendChild(document.createTextNode(dealID));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(price));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(name));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(startDate));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(endDate));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(courses));
+				td.colSpan = 3;
+				tr.appendChild(td);
+				
+				//mealdeal.innerHTML = dealID + " " + name + " " + price + " " + startDate + " " + endDate + " " + courses
+				document.getElementById("MealDeals").appendChild(tr)
+				
+				});
 			}
 
 

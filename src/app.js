@@ -262,7 +262,7 @@ function insertCourses(res,json){
 	var BreakException = {};
 	try{
 	for(let counter = 0; counter < courses.length; counter++){
-		let course = parseInt(courses[counter].courseID);
+		let courseID = parseInt(courses[counter].courseID);
 		numberofitems = parseInt(courses[counter].numberOfItems);
 		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseID}, ${numberofitems})`, function(err) {
 			if (err) {
@@ -283,7 +283,6 @@ function insertCourses(res,json){
 	}catch(e){
 		if(e){
 			res.status(400).end()
-			console.log(courses)
 			console.log(e)
 			return;
 		}
@@ -294,7 +293,7 @@ app.get('/rewardsss', function(req,res){
 	res.render('Rewards.html');
 })
 
-app.get('/rewards', function(req,res){
+app.get('/deals', function(req,res){
 	let time = new Date();
 	let n = time.getTime();
 	db.all(`SELECT * FROM MealDeals`, async function(err, row){
