@@ -49,11 +49,12 @@ module.exports = class Handlers{
 	
 	//get information about a coupon
 	get_coupons(res,id){
+		//console.log(id)
 		let CouponID = id;
 		let checkdate = ExpirationDateAwait(CouponID,this.db);
 		if(viability(checkdate)=== false){
 			//sets used +1 or used=amount
-			//fix
+			console.log("viability")
 			UsedCoupon(CouponID);
 			resp.message = ("Coupon out of date");
 			res.status(400).end(resp);
@@ -93,12 +94,13 @@ function GetUserCoupons(id,res,db){
 }
 
 function GetCoupon (CouponID,res,db){
+		let resp = JSON.parse('{}')
     db.get(`SELECT CouponID,ExpirationDate,Type,Value FROM Coupon WHERE CouponID = ${CouponID}`, function (err,row){
 			if(err){console.log(err)
 			res.status(400).end(err);}
       else{
-//console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
-		res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Used": row.Value })
+console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
+		res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Value": row.Value })
       }
     });
   
@@ -177,7 +179,7 @@ function add2User(json, res, db, resTest){
 				db.run(`UPDATE UserCoupons(UserID, Coupons, Amount, Used) VALUES (${UserID}, ${CouponID}, ${Amount}, ${Used})`, function(err,row){
 					if(err){console.log(err)
 						resp.message = err;
-					res.status(400).end(resp);
+					res.status(400).end();
 				}
 				else {res.status(200).end();}
 				});

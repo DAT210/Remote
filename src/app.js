@@ -262,9 +262,9 @@ function insertCourses(res,json){
 	var BreakException = {};
 	try{
 	for(let counter = 0; counter < courses.length; counter++){
-		courseid = parseInt(courses[counter].courseID);
+		let courseID = parseInt(courses[counter].courseID);
 		numberofitems = parseInt(courses[counter].numberOfItems);
-		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseid}, ${numberofitems})`, function(err) {
+		db.run(`INSERT INTO Courses(DealID, CourseID, NumberOfItems) VALUES (${mealdealid}, ${courseID}, ${numberofitems})`, function(err) {
 			if (err) {
 				let resp = JSON.parse('{}');
 				console.log(err.message);
@@ -275,13 +275,15 @@ function insertCourses(res,json){
 				return;
 			}else{
 				if(counter + 1 == courses.length){
-					res.status(201).end();
+					res.status(200).end();
 				}
 			}
 		});
 	}
 	}catch(e){
 		if(e){
+			res.status(400).end()
+			console.log(e)
 			return;
 		}
 	}
@@ -291,7 +293,7 @@ app.get('/rewardsss', function(req,res){
 	res.render('Rewards.html');
 })
 
-app.get('/rewards', function(req,res){
+app.get('/deals', function(req,res){
 	let time = new Date();
 	let n = time.getTime();
 	db.all(`SELECT * FROM MealDeals`, async function(err, row){
@@ -409,16 +411,16 @@ function getCourses(id){
 	Code 404 means that the course does not exist
 */
 
-app.post('/mealDeal', function(req, res){
+app.post('/mealDeal/', function(req, res){
 	let page = req.body.page;
-	if (!['mealDeal'].includes(page)){
+	/* if (!['mealDeal'].includes(page)){
 		console.log('Not a valid page');
 		res.status(404).end();
 		return;
-	}
-	if (page === 'mealDeal'){
+		} */
+	//if (page === 'mealDeal'){
 		postDeal(req,res);
-	}
+//	}
 });
 
 app.get('/reward-pages/:id', function(req, res){
