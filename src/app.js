@@ -291,7 +291,7 @@ app.get('/rewardsss', function(req,res){
 	res.render('Rewards.html');
 })
 
-app.get('/rewards', function(req,res){
+app.get('/deals', function(req,res){
 	let time = new Date();
 	let n = time.getTime();
 	db.all(`SELECT * FROM MealDeals`, async function(err, row){

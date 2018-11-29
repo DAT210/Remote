@@ -129,6 +129,8 @@ uses standard jshint style
 The API doesn't require any authentication (yet).
 
 ### Endpoints:
+Get /rewardsss
+
 GET /deals
 
 GET /reward-pages/:orderId?page=["tokens", "mealDeal"]
@@ -146,6 +148,8 @@ POST /coupons/
 patch /use_coupon/
 
 ### Details:
+#### GET /rewardsss 
+	management page
 
 #### GET /deals 
  	returns all mealDeals that is valid

@@ -134,7 +134,7 @@
 				td.appendChild(document.createTextNode(couponID));
 				tr.appendChild(td);
 				td = document.createElement("td");
-				td.appendChild(document.createTextNode(expirationDate)));
+				td.appendChild(document.createTextNode(expirationDate));
 				td.colSpan = 2;
 				tr.appendChild(td);
 				td = document.createElement("td");
@@ -165,7 +165,6 @@
 							selectCoupon.appendChild(option)
 						}
 					}
-					else {console.log("noe gikk feil")}
 				}
 				http.send();
 			}
@@ -228,9 +227,10 @@
 						if (this.readyState == 4 && this.status == 200) {
 							resolve(this.responseText);
 						}
-						else {var myWindowvar myWindow = window.open("", "MsgWindow", "width=200,height=100");
+						else if(this.readyState == 4 && this.status == 400){
+						var myWindow = window.open("", "MsgWindow", "width=200,height=100");
 						let json = JSON.parse(this.responseText);
-				myWindow.document.write(json);}
+						myWindow.document.write(json);}
 					}
 				});
 			}
