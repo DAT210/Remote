@@ -60,7 +60,7 @@
 					myNode.removeChild(myNode.firstChild);
 				}
 				var http = new XMLHttpRequest();
-				http.open( "GET", `deals`, true ); // false for synchronous request
+				http.open( "GET", `deals`, true ); // false for synchronous request, browser hates synchronous
 				http.onreadystatechange = function () {
 					if (this.readyState == 4 && this.status == 200) {
 						let selectDeal = document.getElementById("selectDeal");
@@ -116,23 +116,36 @@
 	<div class="footer-container" id="main-reward-footer-middle">
 		<form id="main-reward-footer-modifier" onsubmit="return false">
 			<script>
-//redundant?
+
 			function updateCouponView(){
 				let id = document.getElementById("selectCoupon").value;
 				Get(`reward-pages/${id}?page=coupon`).then((xmlHttp) => {
 				let json = JSON.parse(xmlHttp);
-				
+			
 				let couponID = parseInt(json.CouponID, 10); 
 				let expirationDate = json.ExpirationDate;
 				let couponType = parseInt(json.Type, 10);
 				let couponValue = parseInt(json.Value, 10);
 			
-				let coupon = document.createElement("p");
-				coupon.innerHTML = couponID + " 	" + expirationDate + "		" + (couponType == 0 ? "%" : "kr") + " " + couponValue;
-				document.getElementById("Coupons").appendChild(coupon);
+				
+				var tr = document.createElement("tr");
+				td = document.createElement("td");
+				td.colSpan = 3;
+				td.appendChild(document.createTextNode(couponID));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(expirationDate)));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(couponType == 0 ? "%" : "kr"));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(couponValue));
+				tr.appendChild(td);
+				// coupon.innerHTML = couponID + " 	" + expirationDate + "		" + (couponType == 0 ? "%" : "kr") + " " + couponValue;
+				document.getElementById("Coupons").appendChild(tr);
 
-				var myWindow = window.open("", "MsgWindow", "width=200,height=100");
-				myWindow.document.write(couponID);
 				});
 			}
 
@@ -145,13 +158,14 @@
 						let selectCoupon = document.getElementById("selectCoupon");
 						let userCoupons = JSON.parse(this.responseText);
 						coupons = userCoupons.coupons
-						document.getElementById("newCoupon").value = coupons[0].coupon
+						document.getElementById("selectCoupon").value = coupons[0].coupon
 						for (counter = 0; counter < coupons.length; counter++){
 							var option = document.createElement("option");
 							option.text = coupons[counter].coupon
 							selectCoupon.appendChild(option)
 						}
 					}
+					else {console.log("noe gikk feil")}
 				}
 				http.send();
 			}
@@ -214,13 +228,16 @@
 						if (this.readyState == 4 && this.status == 200) {
 							resolve(this.responseText);
 						}
+						else {var myWindowvar myWindow = window.open("", "MsgWindow", "width=200,height=100");
+						let json = JSON.parse(this.responseText);
+				myWindow.document.write(json);}
 					}
 				});
 			}
 
 		</script>
 			<label for="user">User:</label>
-			<input id="user" onchange="updateCoupons()" type="text" name="user" placeholder="skriv brukerID"><br>
+			<input id="user" onchange="updateCoupons(); " type="text" name="user" placeholder="skriv brukerID"><br>
 
 			<label for="selectCoupon">Velg kupong:</label>
 			<select id="selectCoupon" name="selectCoupon" onload="" onchange="updateCouponView(); ">
@@ -238,7 +255,7 @@
 			 </select><br>
 
 			<label for="Cvalue">value:</label>
-			<input id="Cvalue" type="text" name="Cvalue" placeholder="verdi" min="0" max="100">{{ Cvalue if Cvalue}}</input><br>
+			<input id="Cvalue" type="text" name="Cvalue" placeholder="verdi" min="0" max="100" {{"100" if Ctype == 0 else "1000"}}>{{ Cvalue if Cvalue}}</input><br>
 
 			<label for="CexpirationDate">expirationDate:</label>
 			<input id="CexpirationDate" type="date" name="CexpirationDate" placeholder="skriv inn dato">{{ CexpirationDate if CexpirationDate else datenow}}</input><br>

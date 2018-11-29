@@ -34,45 +34,65 @@ for (let i = 0; i < data.length; i++) {
 }
 
 describe('API', function() {
-	describe('post(\'/rewards/:userID\')', function() {
+	describe('post(\'/rewards/user_coupons\')', function() {
 		
 		it('Should be inserted', function(done) {
-			let url = `localhost:${process.env.PORT}/rewards/10`;
+			let url = `localhost:${process.env.PORT}/reward-pages/user_coupons`;
 			superagent
 			.post(url)
 			.set('accept', 'json')
-			.send({ userID: 1, couponID: 1, coupon: [ { couponID: 1, expirationDate: 9, type: 49.99, value: 1 } ]})
+			.send({ userID: 1, couponID: 58})
 			.end((err, res) => {
 				if (err) { done(err); return; }
-				if (res.status != 201) { done(res.description); return; }
+				if (res.status != 400) { done(res.description); return; }
 				done();
 			});
 		});
 		
 		it('Should not be inserted', function(done) {
-			let url = `localhost:${process.env.PORT}/rewards/10`;
+			let url = `localhost:${process.env.PORT}/reward-pages/user_coupons`;
 			superagent
 			.post(url)
 			.set('accept', 'json')
-			.send({ userID: 1, couponID: 1, ordered: [ {  couponID: 1, expirationDate: 9, type: 49.99, value: 1  } ]})
+			.send({ userID: 1, couponID: 991})
 			.end((err, res) => {
 				if (err) { done(); return; }
-				if (res.status != 201) { done(); return; }
+				if (res.status != 200) { done(); return; }
 				done(false);
 			});
 		});
 
 	});
 
-	describe('get(\'/rewards/:UserID\')', function() {
+	describe('get(\'/reward-pages/userCoupons\')', function() {
 		
-		for (let i = 0; i < data.length; i++) {
 			it('Data with index ' + i, function(done) {
+				let id = 1;
 				superagent
-				.get(`localhost:${process.env.PORT}/rewards/${data[i].UserID}`)
+				.get(`localhost:${process.env.PORT}/reward-pages/${id}?page=userCoupons`)
 				.then(res => {
 					let json = JSON.parse(res.text);					
-					assert.deepEqual(data[i], json);
+					assert.deepEqual(58, json);
+					done();
+				})
+				.catch(err => {
+					done(err);
+				});
+			});
+		
+		
+	});	
+
+	describe('get(\'/reward-pages/Coupon\')', function() {
+		
+		for (let i = 0; i < 1; i++) {
+			it('Data with index ' + i, function(done) {
+				let id = 1;
+				superagent
+				.get(`localhost:${process.env.PORT}/reward-pages/${id}?page=coupon`)
+				.then(res => {
+					let json = JSON.parse(res.text);					
+					assert.deepEqual(data, json);
 					done();
 				})
 				.catch(err => {

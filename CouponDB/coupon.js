@@ -26,13 +26,13 @@ module.exports = class Handlers{
 		//TODO: error respons
 		if(json.UserID === undefined || json.CouponID === undefined){
 			resp.message = ("trenger UserID og CouponID");
-			res.status(400).end(resp)
+			res.status(400).json(resp)
 		} 
 		else if (json.UserID === undefined){resp.message = ("trenger UserID");
-	res.status(400).end(resp);}
+	res.status(400).json();}
 
 	else if (json.CouponID ===undefined){resp.message = ("trenger CouponID");
-	res.status(400).end(resp);}
+	res.status(400).json();}
 
 		else{
 			let UserID = parseInt(json.UserID,10);
@@ -49,7 +49,7 @@ module.exports = class Handlers{
 	
 	//get information about a coupon
 	get_coupons(res,id){
-		//console.log(id)
+	
 		let CouponID = id;
 		let checkdate = ExpirationDateAwait(CouponID,this.db);
 		if(viability(checkdate)=== false){
@@ -57,7 +57,7 @@ module.exports = class Handlers{
 			console.log("viability")
 			UsedCoupon(CouponID);
 			resp.message = ("Coupon out of date");
-			res.status(400).end(resp);
+			res.status(400).json(resp);
 		}
 		else{
 			GetCoupon(CouponID,res,this.db);
@@ -69,12 +69,12 @@ async function ExpirationDateAwait(CouponID, db){
 	return await getExpirationDate(CouponID, db);
 }
 function GetUserCoupons(id,res,db){
-	console.log(id)
+	
 	let resp = JSON.parse('{}')
 	db.all(`SELECT Coupons, Amount, Used FROM UserCoupons WHERE UserID = ${id}`,function(err,rows){
 		if(err){
 			console.log(err);
-			res.status(400).end(err)
+			res.status(400).json(err)
 			}
 		else{
 			if (rows.length > 0){
@@ -87,7 +87,7 @@ function GetUserCoupons(id,res,db){
 				console.log(coupons)
 				res.status(200).json({"userID": id,"coupons": coupons})
 			}else{
-				res.status(404).end();
+				res.status(404).json();
 			}
 		}
 	});
@@ -97,7 +97,7 @@ function GetCoupon (CouponID,res,db){
 		let resp = JSON.parse('{}')
     db.get(`SELECT CouponID,ExpirationDate,Type,Value FROM Coupon WHERE CouponID = ${CouponID}`, function (err,row){
 			if(err){console.log(err)
-			res.status(400).end(err);}
+			res.status(400).json(err);}
       else{
 console.log(row.CouponID,row.ExpirationDate,row.Type,row.Value);
 		res.status(200).json({"CouponID": row.CouponID, "ExpirationDate": row.ExpirationDate, "Type": row.Type, "Value": row.Value })
@@ -132,7 +132,13 @@ function MakeCoupon(req, res, db, resTest){
 	if(!(json.expirationDate === undefined)){
 		ExpirationDate = json.expirationDate;
 	}
-	console.log(ExpirationDate + " " + Type + " " + Value)
+	if (Type === 0 & Value > 100){
+		let resp = JSON.parse('{}')
+		resp.message = "over 100%";
+		res.status(400).json(resp);
+		return;
+	}
+	
 	return new Promise((resolve, reject) =>{
 		db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value})`, function(err,row){
 			if(err){
@@ -143,7 +149,7 @@ function MakeCoupon(req, res, db, resTest){
 				}
 			}
 			else {
-				console.log(`A row has been inserted with CouponID: ${this.lastID}`);
+				
 				if(resTest){
 					res.status(200).json({"CouponID": this.lastID});
 				}
@@ -154,7 +160,7 @@ function MakeCoupon(req, res, db, resTest){
 }
 
 function add2User(json, res, db, resTest){
-	console.log("hallo")
+	
   let resp = JSON.parse('{}')
   let UserID = parseInt(json.userID,10);
   let CouponID = parseInt(json.couponID,10);
@@ -178,8 +184,9 @@ function add2User(json, res, db, resTest){
 			if (err.errno === 19){
 				db.run(`UPDATE UserCoupons(UserID, Coupons, Amount, Used) VALUES (${UserID}, ${CouponID}, ${Amount}, ${Used})`, function(err,row){
 					if(err){console.log(err)
+						resp = err;
 						resp.message = err;
-					res.status(400).end();
+					res.status(400).json(resp);
 				}
 				else {res.status(200).end();}
 				});
@@ -210,39 +217,16 @@ async function addCoupon(req, res, db){
 	
 	res.status(200).end()
 }
- /*
-var datenow = makeDate;
-let json = req.body;
-	let UserID = parseInt(json.UserID, 10);
-  let Type = parseInt(json.Type, 10);
-  let Value = parseInt(json.Value, 10);
-	let ExpirationDate = datenow;
-  
- //MakeCoupon?
-  db.run(`INSERT INTO Coupon(ExpirationDate, Type, Value) VALUES (${ExpirationDate}, ${Type}, ${Value} )`,function(err,row){
-    if(err){console.log(err)}
-    else{
-     // console.log(this.CouponID);
-      CouponID = this.CouponID;
-    }
-  })
-  //add2User?
-  db.run(`INSERT INTO UserCoupons(UserID, Coupons) VALUES (${UserID}, ${CouponID})`, function(err,row){
-    if(err){console.log(err);}
-    else{
-      res.status(200).json({"UserID": this.UserID,"CouponID": this.CouponID, "Amount": this.Amount, "Used": this.Used });
-    }
-  });
-} */
+
 
 // checks expirationdate
-// skrives om?
+
 function viability (date2check){
   var d = Date.now;
   var date = d.toString;
   var ans = true;
   for(var i=0;i<date2check.length;i++){
-    if(date2check[i]<date[i]){
+    if(date2check[i]>date[i]){
       ans = false;
     break;}
     else{continue;}
@@ -256,7 +240,6 @@ function getExpirationDate(CouponID, db){
     if(err){console.log(err); return}
     else {
 		let checkdate = row.ExpirationDate;
-		console.log(row)
 		return checkdate;
 	 }
 });
@@ -284,7 +267,7 @@ function UsedCoupon (UserID, CouponID,res, db){
 					resp.description = err.message
 					res.status(400).json(resp)
 				}else {
-					console.log("Uses: " + uses + " of: " + Amount);
+					resp.message = "Uses: " + uses + " of: " + Amount;
 					res.status(200).end()
 				}
 			});

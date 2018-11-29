@@ -1,7 +1,7 @@
 # Rewards
 > Rewards API
 
-The Reward Service can be used to make deals and cupons.
+The Reward Service can be used to make deals and coupons.
 
 ## Installing / Getting started
 
@@ -101,7 +101,7 @@ Arguments:
 
 ## Tests
 
-TODO: There are no tests
+
 Before running any tests you need to set up a /env/test.env file with 
 your api keys.
 
@@ -129,7 +129,7 @@ uses standard jshint style
 The API doesn't require any authentication (yet).
 
 ### Endpoints:
-GET /rewards
+GET /deals
 
 GET /reward-pages/:orderId?page=["tokens", "mealDeal"]
 
@@ -139,9 +139,15 @@ patch /addTokens
 
 post /rewards
 
+GET reward-pages/:id?page=userCoupons
+GET reward-pages/:id?page=coupon
+POST /user_coupons
+POST /coupons/
+patch /use_coupon/
+
 ### Details:
 
-#### GET /rewards 
+#### GET /deals 
  	returns all mealDeals that is valid
   		Respons format{[
               	"dealID":      int,
@@ -206,11 +212,72 @@ post /rewards
     
   	}
 
+#### GET reward-pages/:id?page=userCoupons
+Returns information about which coupons the user is in possesion of.
+
+Status code 200 => Coupon exists and information was returned.
+Status code 400 => Coupon doesn't exist and no information was returned.
+Response format
+	{
+	UserID: int
+  	Coupons: []
+	}
+
+###GET reward-pages/:id?page=coupon 
+Returns information about the coupon the user is in possesion of.
+
+Status code 200 => Coupon exists and information was returned.
+Status code 400 => Coupon doesn't exist and no information was returned.
+Response format
+	{
+	CouponID: int
+	ExpirationDate: string
+	Type: int
+	Value: int
+
+	}
+
+###POST /user_coupons
+Gives a selected user rights too use selected coupon
+post format
+	{
+	userID: int
+	couponID : int
+	}
+
+###POST /coupons/
+adds a coupon to the database, respons with the couponID
+post format
+	{
+	type: int
+	value: int
+	expirationdate: string
+	}
+
+### POST /user_coupon
+makes and gives a user a coupon
+post format
+	{
+	userID: int
+	type: int
+	value: int
+	}
+
+###patch /use_coupon/
+when a coupon is used, the used counter on the user who used that coupon is ticked
+when either the expirationdate or used === amount counter the coupon is removed
+patch format: 
+	{
+	userID: int
+	couponID: int
+	}
+
+
 ## Database
 
 This service is built with [SQLite](https://www.sqlite.org/), using the [sqlite3 package](https://www.npmjs.com/package/sqlite3). Database version is based on the version on your system. If you don't have SQLite on your system, version 3.15.0 will be used. You can download SQLite [here](https://www.sqlite.org/download.html).
 
-The database has 3 table:
+The database has 5 tables:
 
 TokensDB, with columns:
 - UserID	INTEGER PRIMARY KEY
@@ -231,6 +298,26 @@ Courses, with columns:
 FOREIGN KEY(DealID)
 REFERENCES MealDeals(DealID)
 PRIMARY KEY(DealID, CourseID)
+
+UserCoupons :
+
+UserID INTEGER,
+ Coupons INTEGER,
+ Amount INTEGER,
+ Used INTEGER,
+ FOREIGN KEY (Coupons) REFERENCES Coupon (Coupons)
+ PRIMARY KEY (UserID, CouponID)
+);
+
+
+The Coupons themselves looks like this: 
+CREATE TABLE Coupon (
+ CouponID INTEGER PRIMARY KEY AUTO_INCREMENT,
+ ExpirationDate TEXT,
+ Type INTEGER,
+ Value INTEGER,
+ 
+);
 
 
 ## Licensing
