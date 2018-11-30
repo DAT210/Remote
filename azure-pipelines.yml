@@ -2,7 +2,7 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
-  image: 'Reward'
+  image: 'reward'
   latestTag: '$(image):latest'
 
 steps:
