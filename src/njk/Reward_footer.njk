@@ -1,0 +1,339 @@
+<div id="main-content-footer-container">
+	<div class="footer-container" id="main-reward-footer-left">
+		<div class="back-btn-container">
+			<button class="button" type="button" name="back-button" onclick="navigateBackToOrderPage()">Back</button>
+		</div>
+	</div>
+
+<div class="footer-container" id="main-reward-footer-left2">
+		<div id="MealDeal-container">
+			<button class="button" type="button" name="insert-mealDeal" onclick="addDeal()"> add-mealDeal </button>
+		</div>
+
+	<script>
+	datenow = new Date().getTime();
+	window.onload = function(){
+		updateDeals();
+	}
+   function addDeal() {
+			let dealID = parseInt(document.getElementById("dealID").value, 10);
+			let name = document.getElementById("name").value;
+			let price = parseInt(document.getElementById("price").value, 10);
+			let startDate = document.getElementById("startDate").value;
+			let endDate = document.getElementById("endDate").value;
+			let courses = document.getElementById("courses").value;
+			let items = document.getElementById("items").value
+
+			const http = new XMLHttpRequest();
+			const url = `/mealDeal/`;
+			http.open('POST', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+		
+			var coursesArray = courses.split(" ");
+			var itemsArray = items.split(" ");
+			let numberOfCourses = coursesArray.length;
+			let json = JSON.parse('{}');
+			json.dealID = dealID;
+			json.name = name;
+			json.price = price;
+			json.startDate = startDate;
+			json.endDate = endDate;
+			json.courses = []
+			
+
+            for(var i = 0 ; i < numberOfCourses ; i++) {
+				json.courses[i] = {"dealID": dealID, "courseID": coursesArray[i], "numberOfItems": itemsArray[i]}
+              }
+
+
+			http.send(JSON.stringify(json));
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					updateDeals()
+				}
+			}
+		}
+
+		function updateDeals(){
+				var myNode = document.getElementById("selectDeal");
+				while(myNode.firstChild){
+					myNode.removeChild(myNode.firstChild);
+				}
+				var http = new XMLHttpRequest();
+				http.open( "GET", `deals`, true ); // false for synchronous request, browser hates synchronous
+				http.onreadystatechange = function () {
+					if (this.readyState == 4 && this.status == 200) {
+						let selectDeal = document.getElementById("selectDeal");
+						let deals = JSON.parse(this.responseText);
+						document.getElementById("selectDeal").value = deals[0].dealID
+						for (counter = 0; counter < deals.length; counter++){
+							var option = document.createElement("option");
+							option.text = deals[counter].dealID;
+							selectDeal.appendChild(option);
+						}
+					}
+				}
+				http.send();
+			}
+	</script>
+	
+	<form id="main-reward-footer-left2mod" onsubmit="return false">
+
+			<label for="selectDeal">Velg mealdeal:</label>
+			<select id="selectDeal" name="selectDeal" onload="updateDeals();" onchange="updateMealDeals(); ">
+				<option value="none" selected>No deal</option>
+				</select><br>
+
+			<label for="dealID">dealID:</label>
+			<input id="dealID" type="text" name="dealID" placeholder="dealID">{{ dealID if dealID }}</input><br>
+			
+
+			<label for="name">name:</label>
+			<input id="name" type="text" name="name" placeholder="navn">{{ name if name}}</input><br>
+			
+
+			<label for="price">price:</label>
+			<input id="price" type="text" name="price" placeholder="pris" min="0">{{ price if price }}</input><br>
+			
+
+			<label for="startDate">startDate:</label>
+			<input id="startDate" type="date" name="startDate" placeholder="yyyy-mm-dd" required>{{ startDate if startDate else datenow }}</input><br>
+			
+
+			<label for="endDate">endDate:</label>
+			<input id="endDate" type="date" name="endDate" placeholder="yyyy-mm-dd" required>{{ endDate if endDate else datenow }}</input><br>
+			
+
+			<label for="courses">courses:</label>
+			<input id="courses" type="text" name="courses" placeholder="courses">{{ courses if courses}}</input><br>
+
+			<label for="items">items:</label>
+			<input id="items" type="text" name="items" placeholder="# of items">{{ "#"}}</input><br>
+			</form>
+	
+</div>
+
+	<div class="footer-container" id="main-reward-footer-middle">
+		<form id="main-reward-footer-modifier" onsubmit="return false">
+			<script>
+
+			function updateCouponView(){
+				let id = document.getElementById("selectCoupon").value;
+				Get(`reward-pages/${id}?page=coupon`).then((xmlHttp) => {
+				let json = JSON.parse(xmlHttp);
+			
+				let couponID = parseInt(json.CouponID, 10); 
+				let expirationDate = json.ExpirationDate;
+				let couponType = parseInt(json.Type, 10);
+				let couponValue = parseInt(json.Value, 10);
+			
+				
+				var tr = document.createElement("tr");
+				td = document.createElement("td");
+				td.colSpan = 3;
+				td.appendChild(document.createTextNode(couponID));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(expirationDate));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(couponType == 0 ? "%" : "kr"));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(couponValue));
+				tr.appendChild(td);
+				// coupon.innerHTML = couponID + " 	" + expirationDate + "		" + (couponType == 0 ? "%" : "kr") + " " + couponValue;
+				document.getElementById("Coupons").appendChild(tr);
+
+				});
+			}
+
+			function updateCoupons(){
+				let id = document.getElementById("user").value;
+				var http = new XMLHttpRequest();
+				http.open( "GET", `reward-pages/${id}?page=userCoupons`, true ); // false for synchronous request
+				http.onreadystatechange = function () {
+					if (this.readyState == 4 && this.status == 200) {
+						let selectCoupon = document.getElementById("selectCoupon");
+						let userCoupons = JSON.parse(this.responseText);
+						coupons = userCoupons.coupons
+						document.getElementById("selectCoupon").value = coupons[0].coupon
+						for (counter = 0; counter < coupons.length; counter++){
+							var option = document.createElement("option");
+							option.text = coupons[counter].coupon
+							selectCoupon.appendChild(option)
+						}
+					}
+				}
+				http.send();
+			}
+
+			function updateMealDeals(){
+				let id = document.getElementById("selectDeal").value;
+				Get(`reward-pages/${id}?page=mealDeal`).then((xmlHttp) => {
+				let json = JSON.parse(xmlHttp)
+				let dealID = parseInt(json.dealID, 10);
+				let price = parseInt(json.price, 10);
+				let name = json.name;
+				let startDate = json.startDate;
+				let endDate = json.endDate;
+				let coursesArr = json.courses;
+				let courses = ""
+				for(let i=0; i<coursesArr.length;i++){
+					if (i > 0){
+					courses += " | "
+					}
+					courses += coursesArr[i].courseID + " " + coursesArr[i].numberOfItems		
+				}
+				var tr = document.createElement("tr");
+				td = document.createElement("td");
+				td.colSpan = 3;
+				td.appendChild(document.createTextNode(dealID));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(price));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(name));
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(startDate));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(endDate));
+				td.colSpan = 2;
+				tr.appendChild(td);
+				td = document.createElement("td");
+				td.appendChild(document.createTextNode(courses));
+				td.colSpan = 3;
+				tr.appendChild(td);
+				
+				//mealdeal.innerHTML = dealID + " " + name + " " + price + " " + startDate + " " + endDate + " " + courses
+				document.getElementById("MealDeals").appendChild(tr)
+				
+				});
+			}
+
+
+
+			function Get(theUrl){
+				return new Promise(function(resolve) {
+					var xmlHttp = new XMLHttpRequest();
+					xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+					xmlHttp.send();
+					xmlHttp.onreadystatechange = function () {
+						if (this.readyState == 4 && this.status == 200) {
+							resolve(this.responseText);
+						}
+						else if(this.readyState == 4 && this.status == 400){
+						var myWindow = window.open("", "MsgWindow", "width=200,height=100");
+						let json = JSON.parse(this.responseText);
+						myWindow.document.write(json);}
+					}
+				});
+			}
+
+		</script>
+			<label for="user">User:</label>
+			<input id="user" onchange="updateCoupons(); " type="text" name="user" placeholder="skriv brukerID"><br>
+
+			<label for="selectCoupon">Velg kupong:</label>
+			<select id="selectCoupon" name="selectCoupon" onload="" onchange="updateCouponView(); ">
+				<option value="none||none" selected>No coupon</option>
+				{% for coupon in coupons %}
+				<option value="{{coupon.type}}||{{coupon.value}}">{{ coupon.value }}{{ "%" if coupon.type == 0 else "kr" }}</option>
+				{% endfor %}
+			</select><br>
+			
+
+			<label for="Ctype">type:</label>
+			<select id="Ctype" type="text" name="type" placeholder="%"> {{ "%" if Ctype.value == 0 else "kr" }}
+			<option value ="0" selected>0</option>
+			<option value ="1" selected>1</option>
+			 </select><br>
+
+			<label for="Cvalue">value:</label>
+			<input id="Cvalue" type="text" name="Cvalue" placeholder="verdi" min="0" max="100" {{"100" if Ctype == 0 else "1000"}}>{{ Cvalue if Cvalue}}</input><br>
+
+			<label for="CexpirationDate">expirationDate:</label>
+			<input id="CexpirationDate" type="date" name="CexpirationDate" placeholder="skriv inn dato">{{ CexpirationDate if CexpirationDate else datenow}}</input><br>
+		</form>
+	</div>
+
+	<div class="footer-container" id="main-reward-footer-right">
+		<div id="add-btn-container">
+			<button class="button" type="button" name="add-button" onclick=" addCoupon();">addCoupon </button>
+		</div>
+	
+
+	<script>
+		function addCoupon() {
+			let type = parseInt(document.getElementById("Ctype").value, 10);
+			let value = parseInt(document.getElementById("Cvalue").value, 10);
+			let expirationDate = parseInt(document.getElementById("CexpirationDate").value, 10);
+
+			const http = new XMLHttpRequest();
+			const url = '/coupons/';
+			http.open('POST', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+			let json = JSON.parse('{}');
+			json.type = type;
+			json.value = value;
+			json.expirationDate = expirationDate;
+
+			http.send(JSON.stringify(json));
+
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					let nyeste = JSON.parse(this.responseText);
+					document.getElementById("newCoupon").value =  nyeste.CouponID;
+					var myWindow = window.open("", "MsgWindow", "width=200,height=100");
+				myWindow.document.write("Coupon was made: " + nyeste.CouponID);
+				}
+			}
+		}
+	</script>
+	</div>
+
+	<div class="footer-container" id="main-reward-footer-right2">
+
+	<label for="newUser">newUser:</label>
+			<input id="newUser" type="text" name="newUser" placeholder="ny">{{ User if User}}</input><br>
+
+	<label for="newCoupon">newCoupon:</label>
+			<input id="newCoupon" type="text" name="newCoupon" placeholder="nyeste">{{ NewCoupon if NewCoupon}}</input><br>
+
+		<div id="give-btn-container">
+			<button class="button" type="button" name="give-button" onclick="giveCoupon()">giveCoupon</button>
+		</div>
+
+	
+	<script>
+		function giveCoupon() {
+			let userID = parseInt(document.getElementById("newUser").value, 10);
+			let couponID = parseInt(document.getElementById("newCoupon").value, 10);
+
+			const http = new XMLHttpRequest();
+			const url = '/user_coupons';
+			http.open('POST', url);
+			http.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+			let json = JSON.parse('{}');
+			json.userID = userID;
+			json.couponID = couponID;
+
+			http.send(JSON.stringify(json));
+
+
+			http.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					var myWindow = window.open("", "MsgWindow", "width=200,height=100");
+				myWindow.document.write("Coupon: " + couponID + " was given: " + userID);
+				}
+			}
+		}
+	</script>
+	</div>

@@ -1,0 +1,291 @@
+.Reward {
+    margin-top: 120px;
+    border-top: 1em solid #222222;
+    width: 100%;
+    height: 80%;
+    background-color: #222222;
+    color: grey;
+    text-align: center;
+    float: left;
+    vertical-align:top;
+}
+
+.preview {
+    margin: 2em auto 0 auto;
+    background-color: #222222;
+    border: 1px solid grey;
+    width: 45%;
+    height: 60%;
+    color: grey;
+    position: relative;
+    right: 22%;
+}
+
+#MealDeal * {
+    text-align: center;
+}
+
+#MealDeal tr:nth-child(even) {
+    background: #CCC
+}
+
+#MealDeal tr:nth-child(odd) {
+    background: #FFF
+}
+
+.Reward2 {
+    margin-top: 120px;
+    border-top: 1em solid #222222;
+    width: 100%;
+    height: 80%;
+    background-color: #222222;
+    color: grey;
+    text-align: center;
+    float: right;
+    vertical-align:top;
+}
+
+.preview2 {
+    margin: 2em auto 0 auto;
+    background-color: #222222;
+    border: 1px solid grey;
+    width: 45%;
+    height: 60%;
+    color: grey;
+    float: right;
+    position: relative;
+    bottom: 100%;
+}
+
+#Coupon * {
+    text-align: center;
+}
+
+#Coupon tr:nth-child(even) {
+    background: #CCC
+}
+
+#Coupon tr:nth-child(odd) {
+    background: #FFF
+}
+
+.cupon-select {
+    min-width: 100px;
+    margin-right: 1em;
+}
+
+table {
+    width: 100%;
+    margin-top: 1em;
+    text-align: left;
+    table-layout: fixed;
+}
+
+.nospace {
+    width: 0px;
+}
+
+.Reward3 {
+    margin-top: 120px;
+    border-top: 1em solid #222222;
+    width: 100%;
+    height: 50%;
+    background-color: #222222;
+    color: grey;
+    text-align: center;
+    float: bottom;
+    height: 50%;
+    vertical-align:top;
+}
+
+
+
+/************************* FOOTER ********************************/
+
+.button {
+    background-color: #222222;
+    color: grey;
+    border: 1px solid grey;
+    text-align: center;
+    width: 95%;
+    padding: 15px 30px;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#main-content-footer-container {
+    width: 35%;
+    margin: auto;
+    margin-top: 1em;
+}
+
+.footer-container {
+    float: left;
+}
+
+.footer-backbtn-container {
+    width: 25%;
+}
+
+.back-btn-container {
+    width: 33%;
+    margin: auto;
+}
+
+#add-btn-container,
+#add-button {
+    width: 33%;
+    margin: auto;
+}
+
+
+/*
+reward
+*/
+
+#main-reward-footer-left {
+    width: 25%;
+    position: relative;
+    bottom: 100px;
+    right: 55%;
+}
+
+#main-reward-footer-left2 {
+    width: 25%;
+    position: relative;
+    bottom: 605px;
+    right: 55%;
+}
+
+#main-reward-footer-middle {
+    width: 45%;
+    position: relative;
+   bottom: 565px;
+    left: 55%;
+}
+
+#main-reward-footer-right {
+    width: 45%;
+    position: relative;
+    bottom: 555px;
+    left: 40%;
+}
+
+#main-reward-footer-right2 {
+    width: 45%;
+     position: relative;
+    bottom: 555px;
+    left: 60%;
+}
+
+#main-container {
+    width: 100%;
+    height: 250px;
+    background-color: black;
+    margin-top: 200px;
+}
+
+#container {
+    width: 40%;
+    height: 80%;
+    margin: auto;
+    text-align: center;
+}
+
+#main-reward-footer-modifier {
+    margin: auto;
+    line-height: 30px;
+    font-size: 20px;
+}
+
+label {
+    display: inline-block;
+    width: 50%;
+    text-align: left;
+}
+
+output,
+input,
+select {
+    display: inline-block;
+    width: 80%;
+    text-align: left;
+}
+
+
+/*
+knapper her?
+*/
+
+.reward_option_container {
+    float: left;
+    width: 33%;
+}
+
+#choose-reward-footer-left {
+    width: 25%;
+}
+
+#choose-reward-footer-right {
+    width: 50%;
+}
+
+#choose-reward-footer-right2 {
+    width: 50%;
+}
+
+
+
+
+
+/*https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_modal*/
+
+
+/* The Modal (background) */
+
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 50%;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+}
+
+
+/* Modal Content */
+
+.modal-content {
+    background-color: #fefefe;
+    border: 1px solid #888;
+    margin: auto;
+    padding: 20px;
+    width: auto;
+    text-align: center;
+}
+
+
+/* The Close Button */
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}

@@ -1,0 +1,59 @@
+{% extends "template.html" %} {% block title %} Reward {% endblock %} {% block content %}
+
+<div class="Reward">
+
+    <div class="preview">
+        Preview MealDeals
+        <table id="MealDeals">
+            <tr>
+                <th colspan="3">DealID</th>
+                <th colspan="1">Price</th>
+                <th colspan="1">Name</th>
+                <th colspan="2">StartDate</th>
+                <th colspan="2">EndDate</th>
+                <th colspan="3">Courses</th>
+            </tr>
+            {% for d in MealDeals %}
+            <tr>
+                <td colspan="3">{{ d.dealID }}</td>
+                <td colspan="1">{{ d.price }}</td>
+                <td colspan="1">{{ d.name }}</td>
+                <td colspan="2">{{ d.startDate}}</td>
+                <td colspan="2">{{ d.endDate}}</td>
+                <td colspan="3">{{ d.courses}}</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+    </div>
+
+    <div class="Reward2">
+    
+    <div class="preview2">
+    Preview Coupons
+        <table id="Coupons">
+            <tr>
+                <th colspan="3">CouponID</th>
+                <th colspan="2">Expiration Date</th>
+                <th colspan="1">Type</th>
+                <th colspan="1">Value</th>
+            </tr>
+            {% for e in Coupons %}
+            <tr>
+                <td colspan="3">{{ e.couponID }}</td>
+                <td colspan="2">{{ e.expirationDate }}</td>
+                <td colspan="1">{{ e.type }}</td>
+                <td colspan="1">{{ e.value}}</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+    </div>
+</div>
+
+<div class="Reward3">
+
+    {% include "njk/Reward_footer.njk" %} {% endblock %}
+    </div>
